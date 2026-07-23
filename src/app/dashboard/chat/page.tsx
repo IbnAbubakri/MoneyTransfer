@@ -22,15 +22,7 @@ const quickQuestions = [
 
 export default function ChatPage() {
   const { profile } = useAuth();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "welcome",
-      role: "assistant",
-      content:
-        "Hello! Welcome to the SAR to NGN Exchange Platform.\n\nI'm your AI exchange assistant. I can help you:\n• Check the current exchange rate\n• Start a new SAR to NGN exchange\n• Track your transaction status\n• Answer any questions about our service\n\nHow can I help you today?",
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [pendingImage, setPendingImage] = useState<File | null>(null);
@@ -243,7 +235,7 @@ export default function ChatPage() {
           <div ref={messagesEndRef} />
         </div>
 
-        {messages.length <= 1 && (
+        {messages.length === 0 && (
           <div className="px-4 pb-2">
             <p className="text-xs text-gray-400 mb-2">Quick questions:</p>
             <div className="flex flex-wrap gap-2">
