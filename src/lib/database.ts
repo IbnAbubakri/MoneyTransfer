@@ -167,12 +167,14 @@ export async function getCustomerTransactions(
   return data || [];
 }
 
-export async function getAllTransactions(limit = 50): Promise<TransactionWithCustomer[]> {
+export async function getAllTransactions(limit = 50, page = 0): Promise<TransactionWithCustomer[]> {
+  const from = page * limit;
+  const to = from + limit - 1;
   const { data, error } = await supabase
     .from("transactions")
     .select("*, profiles(*)")
     .order("created_at", { ascending: false })
-    .limit(limit);
+    .range(from, to);
 
   if (error) {
     console.error("Error fetching transactions:", error);
@@ -182,14 +184,26 @@ export async function getAllTransactions(limit = 50): Promise<TransactionWithCus
   return data || [];
 }
 
+export async function getAllTransactionsCount(): Promise<number> {
+  const { count } = await supabase
+    .from("transactions")
+    .select("id", { count: "exact", head: true });
+  return count || 0;
+}
+
 export async function getTransactionsByStatus(
-  status: TransactionStatus
+  status: TransactionStatus,
+  limit = 50,
+  page = 0
 ): Promise<TransactionWithCustomer[]> {
+  const from = page * limit;
+  const to = from + limit - 1;
   const { data, error } = await supabase
     .from("transactions")
     .select("*, profiles(*)")
     .eq("status", status)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .range(from, to);
 
   if (error) {
     console.error("Error fetching transactions:", error);
@@ -197,6 +211,14 @@ export async function getTransactionsByStatus(
   }
 
   return data || [];
+}
+
+export async function getTransactionsByStatusCount(status: TransactionStatus): Promise<number> {
+  const { count } = await supabase
+    .from("transactions")
+    .select("id", { count: "exact", head: true })
+    .eq("status", status);
+  return count || 0;
 }
 
 export async function updateTransactionStatus(
@@ -585,7 +607,7 @@ export async function deleteKnowledgeEntry(id: string): Promise<boolean> {
 // ADMIN ENHANCED STATS
 // =====================================================
 export async function getAdminDashboardStats() {
-  const [basicStats, totalVolume, completedTxns] = await Promise.all([
+  const [basicStats, volumeResult, totalResult] = await Promise.all([
     getDashboardStats(),
     supabase
       .from("transactions")
@@ -596,20 +618,14 @@ export async function getAdminDashboardStats() {
       .select("id", { count: "exact", head: true }),
   ]);
 
-  const totalSar = (totalVolume.data || []).reduce(
-    (sum, t) => sum + (t.sar_amount || 0),
-    0
-  );
-  const totalNgn = (totalVolume.data || []).reduce(
-    (sum, t) => sum + (t.ngn_amount || 0),
-    0
-  );
-  const totalTxns = completedTxns.count || 0;
+  const rows = volumeResult.data || [];
+  const totalSar = rows.reduce((sum, t) => sum + (t.sar_amount || 0), 0);
+  const totalNgn = rows.reduce((sum, t) => sum + (t.ngn_amount || 0), 0);
 
   return {
     ...basicStats,
     totalSarVolume: totalSar,
     totalNgnVolume: totalNgn,
-    totalTransactions: totalTxns,
+    totalTransactions: totalResult.count || 0,
   };
 }

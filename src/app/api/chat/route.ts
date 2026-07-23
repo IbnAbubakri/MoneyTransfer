@@ -9,6 +9,23 @@ interface ChatMessage {
   content: string;
 }
 
+// --- Module-level TTL cache (survives across requests on the same Vercel instance) ---
+interface CacheEntry<T> { data: T; expires: number; }
+const cache = new Map<string, CacheEntry<unknown>>();
+const KB_TTL = 5 * 60 * 1000;   // 5 minutes
+const RATE_TTL = 60 * 1000;      // 1 minute
+
+function cacheGet<T>(key: string, ttl: number): T | null {
+  const entry = cache.get(key);
+  if (entry && entry.expires > Date.now()) return entry.data as T;
+  cache.delete(key);
+  return null;
+}
+
+function cacheSet<T>(key: string, data: T, ttl: number): void {
+  cache.set(key, { data, expires: Date.now() + ttl });
+}
+
 async function executeTool(
   name: string,
   args: Record<string, unknown>,
@@ -292,25 +309,35 @@ export async function POST(request: NextRequest) {
 
     const customerName = profile?.full_name || "Customer";
 
-    const { data: kbEntries } = await supabase
-      .from("ai_knowledge_base")
-      .select("category, question, answer")
-      .eq("is_active", true)
-      .order("category");
+    // Cached KB entries (5-min TTL)
+    let kbEntries = cacheGet<Array<{ category: string; question: string; answer: string }>>("kb_entries", KB_TTL);
+    if (!kbEntries) {
+      const { data } = await supabase
+        .from("ai_knowledge_base")
+        .select("category, question, answer")
+        .eq("is_active", true)
+        .order("category");
+      kbEntries = data || [];
+      cacheSet("kb_entries", kbEntries, KB_TTL);
+    }
 
-    const { data: rateData } = await supabase
-      .from("exchange_rates")
-      .select("rate")
-      .eq("is_active", true)
-      .eq("from_currency", "SAR")
-      .eq("to_currency", "NGN")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
+    // Cached exchange rate (1-min TTL)
+    let currentRate = cacheGet<number>("exchange_rate", RATE_TTL);
+    if (currentRate === null) {
+      const { data: rateData } = await supabase
+        .from("exchange_rates")
+        .select("rate")
+        .eq("is_active", true)
+        .eq("from_currency", "SAR")
+        .eq("to_currency", "NGN")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+      currentRate = rateData?.rate || 430;
+      cacheSet("exchange_rate", currentRate, RATE_TTL);
+    }
 
-    const currentRate = rateData?.rate || 430;
-
-    const kbText = (kbEntries || [])
+    const kbText = kbEntries
       .map((e) => `- [${e.category}] Q: ${e.question}\n  A: ${e.answer}`)
       .join("\n");
 
