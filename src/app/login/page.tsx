@@ -34,7 +34,7 @@ export default function LoginPage() {
 
     if (!email.trim()) { setError("Email is required"); return; }
     if (!password) { setError("Password is required"); return; }
-    if (!email.includes("@")) { setError("Please enter a valid email address"); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError("Please enter a valid email address"); return; }
 
     setLoading(true);
     const { error: authError } = await signIn(email, password);

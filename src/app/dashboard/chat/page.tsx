@@ -120,11 +120,12 @@ export default function ChatPage() {
       const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session?.access_token || ""}`,
+        },
         body: JSON.stringify({
           messages: conversationHistory,
-          userId: profile?.id || "",
-          accessToken: session?.access_token || "",
         }),
       });
 

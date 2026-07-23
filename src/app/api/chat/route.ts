@@ -250,17 +250,30 @@ async function executeTool(
 
 export async function POST(request: NextRequest) {
   try {
-    const { messages, userId, accessToken } = await request.json();
+    const { messages } = await request.json();
 
-    if (!messages || !userId) {
-      return NextResponse.json({ error: "Missing messages or userId" }, { status: 400 });
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return NextResponse.json({ error: "Missing or invalid messages" }, { status: 400 });
     }
 
+    // Verify the access token from Authorization header (NOT from request body)
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const accessToken = authHeader.slice(7);
+
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
-      },
+      global: { headers: { Authorization: `Bearer ${accessToken}` } },
     });
+
+    // Verify the token is valid and get the real user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = user.id;
 
     const { data: profile } = await supabase
       .from("profiles")
@@ -336,7 +349,7 @@ ${kbText || "No knowledge base entries available."}
 
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
     const GEMINI_MODEL = "gemini-3.5-flash-lite";
-    const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+    const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
     const functionDeclarations = [
       {
@@ -405,7 +418,10 @@ ${kbText || "No knowledge base entries available."}
           };
           const resp = await fetch(GEMINI_URL, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              "x-goog-api-key": GEMINI_API_KEY,
+            },
             body: JSON.stringify(body),
           });
           if (!resp.ok) {
@@ -481,12 +497,9 @@ ${kbText || "No knowledge base entries available."}
 
     return NextResponse.json({ reply: finalText });
   } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    const stack = error instanceof Error ? error.stack : "no stack";
-    console.error("[CHAT ERROR]", msg);
-    console.error("[CHAT STACK]", stack);
+    console.error("[CHAT ERROR]", error instanceof Error ? error.message : String(error));
     return NextResponse.json(
-      { error: "Failed to process your message. Please try again.", detail: msg },
+      { error: "Failed to process your message. Please try again." },
       { status: 500 }
     );
   }

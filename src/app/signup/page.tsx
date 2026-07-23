@@ -36,7 +36,7 @@ export default function SignupPage() {
 
     if (!fullName.trim()) { setError("Full name is required"); return; }
     if (!email.trim()) { setError("Email is required"); return; }
-    if (!email.includes("@")) { setError("Please enter a valid email address"); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError("Please enter a valid email address"); return; }
     if (!password) { setError("Password is required"); return; }
     if (password.length < 8) { setError("Password must be at least 8 characters"); return; }
 
