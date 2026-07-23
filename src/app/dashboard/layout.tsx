@@ -35,6 +35,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <button
               onClick={() => setSidebarOpen(true)}
               className="lg:hidden p-2 rounded-lg hover:bg-accent"
+              aria-label="Open menu"
             >
               <Menu className="w-5 h-5 text-muted-foreground" />
             </button>
@@ -42,6 +43,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link
               href="/dashboard/chat"
               className="p-2 rounded-lg hover:bg-accent relative"
+              aria-label="AI Assistant"
             >
               <Bell className="w-5 h-5 text-muted-foreground" />
             </Link>

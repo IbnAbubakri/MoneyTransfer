@@ -116,7 +116,7 @@ export default function LoginPage() {
             <Link href="/signup" className="text-primary font-medium hover:underline">Create one</Link>
           </p>
         </div>
-        <p className="text-center text-xs text-muted-foreground/50 mt-6">© 2026 MoneyTransfer. All rights reserved.</p>
+        <p className="text-center text-xs text-muted-foreground/70 mt-6">© 2026 MoneyTransfer. All rights reserved.</p>
       </div>
     </div>
   );

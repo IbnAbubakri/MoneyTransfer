@@ -59,7 +59,7 @@ export function AdminSidebar({ open, onClose }: SidebarProps) {
               <span className="text-xs text-muted-foreground block -mt-0.5">SAR Transfer</span>
             </div>
           </Link>
-          <button onClick={onClose} className="lg:hidden p-1 rounded-md hover:bg-accent">
+          <button onClick={onClose} className="lg:hidden p-1 rounded-md hover:bg-accent" aria-label="Close sidebar">
             <X className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>

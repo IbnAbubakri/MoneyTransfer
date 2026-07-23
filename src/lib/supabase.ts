@@ -4,6 +4,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 let browserClient: SupabaseClient | null = null
+let serverClient: SupabaseClient | null = null
 
 export const createSupabaseBrowser = () => {
   if (browserClient) return browserClient
@@ -12,5 +13,7 @@ export const createSupabaseBrowser = () => {
 }
 
 export const createSupabaseServer = () => {
-  return createClient(supabaseUrl, supabaseAnonKey)
+  if (serverClient) return serverClient
+  serverClient = createClient(supabaseUrl, supabaseAnonKey)
+  return serverClient
 }

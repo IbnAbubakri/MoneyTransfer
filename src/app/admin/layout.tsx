@@ -39,6 +39,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <button
               onClick={() => setSidebarOpen(true)}
               className="lg:hidden p-2 rounded-lg hover:bg-accent"
+              aria-label="Open menu"
             >
               <Menu className="w-5 h-5 text-muted-foreground" />
             </button>

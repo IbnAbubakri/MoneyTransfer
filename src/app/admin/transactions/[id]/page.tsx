@@ -305,6 +305,7 @@ export default function AdminTransactionDetailPage() {
                   value={transferRef}
                   onChange={(e) => setTransferRef(e.target.value)}
                   placeholder="Transfer reference number"
+                  aria-label="Transfer reference number"
                   className="w-full px-3 py-2.5 border border-input rounded-lg text-sm focus:ring-2 focus:ring-ring focus:border-ring outline-none"
                 />
                 <button
@@ -338,6 +339,7 @@ export default function AdminTransactionDetailPage() {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Add a note (optional)"
+                  aria-label="Add a note"
                   rows={2}
                   className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-ring focus:border-ring outline-none resize-none"
                 />

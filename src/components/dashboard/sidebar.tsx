@@ -52,7 +52,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             </div>
             <span className="text-lg font-bold text-foreground">SAR Transfer</span>
           </Link>
-          <button onClick={onClose} className="lg:hidden p-1 rounded-md hover:bg-muted">
+          <button onClick={onClose} className="lg:hidden p-1 rounded-md hover:bg-muted" aria-label="Close sidebar">
             <X className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>

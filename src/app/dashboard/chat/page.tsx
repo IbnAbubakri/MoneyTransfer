@@ -43,26 +43,26 @@ export default function ChatPage() {
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        alert("File is too large. Maximum size is 10MB.");
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        return;
+      }
       setPendingImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      setImagePreview(URL.createObjectURL(file));
     }
   };
 
   const removeImage = () => {
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
     setPendingImage(null);
     setImagePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const uploadReceipt = async (file: File): Promise<string | null> => {
-    if (file.size > 10 * 1024 * 1024) {
-      console.error("File too large:", file.size);
-      return null;
-    }
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token || "";
 
     const fileExt = file.name.split(".").pop();
     const fileName = `receipt-${crypto.randomUUID()}.${fileExt}`;
@@ -206,7 +206,7 @@ export default function ChatPage() {
                 <p className="whitespace-pre-wrap">{msg.content}</p>
                 <p
                   className={`text-[10px] mt-1 ${
-                    msg.role === "user" ? "text-primary-foreground/60" : "text-muted-foreground"
+                    msg.role === "user" ? "text-primary-foreground/80" : "text-muted-foreground"
                   }`}
                 >
                   {msg.timestamp.toLocaleTimeString("en-US", {

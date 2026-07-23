@@ -109,6 +109,7 @@ export default function TransactionDetailPage() {
   const [accountNumber, setAccountNumber] = useState("");
   const [accountName, setAccountName] = useState("");
   const [submittingBank, setSubmittingBank] = useState(false);
+  const [receiptError, setReceiptError] = useState("");
 
   const supabase = createSupabaseBrowser();
 
@@ -134,10 +135,11 @@ export default function TransactionDetailPage() {
     if (!file || !txn || !profile) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      console.error("File too large:", file.size);
+      setReceiptError("File is too large. Maximum size is 10MB.");
       setUploading(false);
       return;
     }
+    setReceiptError("");
 
     setUploading(true);
     const filePath = `${profile.id}/${txn.reference}/receipt-${Date.now()}.${file.name.split(".").pop()}`;
@@ -366,6 +368,9 @@ export default function TransactionDetailPage() {
                 aria-label="Upload payment receipt"
               />
             </label>
+            {receiptError && (
+              <p className="text-sm text-destructive mt-2">{receiptError}</p>
+            )}
           </div>
         </div>
       )}
