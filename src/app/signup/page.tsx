@@ -47,7 +47,7 @@ export default function SignupPage() {
       setLoading(false);
 
       if (authError) {
-        setError(authError.message);
+        setError("Something went wrong. Please try again.");
         return;
       }
 
