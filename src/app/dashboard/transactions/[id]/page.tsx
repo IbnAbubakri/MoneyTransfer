@@ -133,6 +133,12 @@ export default function TransactionDetailPage() {
     const file = e.target.files?.[0];
     if (!file || !txn || !profile) return;
 
+    if (file.size > 10 * 1024 * 1024) {
+      console.error("File too large:", file.size);
+      setUploading(false);
+      return;
+    }
+
     setUploading(true);
     const filePath = `${profile.id}/${txn.reference}/receipt-${Date.now()}.${file.name.split(".").pop()}`;
 
@@ -422,9 +428,11 @@ export default function TransactionDetailPage() {
               <input
                 type="text"
                 value={accountNumber}
-                onChange={(e) => setAccountNumber(e.target.value)}
+                onChange={(e) => setAccountNumber(e.target.value.replace(/[^0-9]/g, ""))}
                 placeholder="10-digit account number"
                 maxLength={10}
+                pattern="[0-9]{10}"
+                inputMode="numeric"
                 className="w-full px-3 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring outline-none text-sm"
               />
             </div>

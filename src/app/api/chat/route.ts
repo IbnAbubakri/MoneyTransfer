@@ -3,6 +3,17 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  waiting_for_payment: ["payment_under_review", "cancelled"],
+  payment_under_review: ["payment_confirmed", "rejected", "cancelled"],
+  payment_confirmed: ["awaiting_bank_details", "cancelled"],
+  awaiting_bank_details: ["transfer_in_progress", "cancelled"],
+  transfer_in_progress: ["completed", "cancelled"],
+  completed: [],
+  cancelled: [],
+  rejected: [],
+};
+
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
@@ -142,6 +153,10 @@ async function executeTool(
         return { success: false, error: `Cannot submit receipt for transaction with status: ${txn.status}` };
       }
 
+      if (!VALID_TRANSITIONS[txn.status]?.includes("payment_under_review")) {
+        return { success: false, error: "Invalid status transition" };
+      }
+
       const { error } = await supabase
         .from("transactions")
         .update({
@@ -196,6 +211,10 @@ async function executeTool(
         return { success: false, error: `Cannot submit bank details for transaction with status: ${txn.status}` };
       }
 
+      if (!VALID_TRANSITIONS[txn.status]?.includes("awaiting_bank_details")) {
+        return { success: false, error: "Invalid status transition" };
+      }
+
       const { error } = await supabase
         .from("transactions")
         .update({
@@ -223,7 +242,7 @@ async function executeTool(
         action: "submit_bank_details",
         entity_type: "transaction",
         entity_id: txn.id,
-        new_values: { bank_name: bankName, bank_account_number: accountNumber, bank_account_name: accountName },
+        new_values: { bank_name: bankName, bank_account_number: accountNumber.slice(-4).padStart(accountNumber.length, "*"), bank_account_name: accountName },
       });
 
       return { success: true, new_status: "awaiting_bank_details" };
@@ -342,7 +361,12 @@ ${kbText || "No knowledge base entries available."}
 - For bank details collection, ask for: Bank Name, Account Number, Account Holder Name — then use submitBankDetails.
 - Never fabricate information. If unsure, say you'll check and use the appropriate tool.`;
 
-    const geminiMessages = messages.map((m: ChatMessage) => ({
+    const MAX_HISTORY = 20;
+    const cappedMessages = messages.length > MAX_HISTORY
+      ? messages.slice(messages.length - MAX_HISTORY)
+      : messages;
+
+    const geminiMessages = cappedMessages.map((m: ChatMessage) => ({
       role: m.role === "assistant" ? "model" : "user",
       parts: [{ text: m.content }],
     }));
@@ -484,13 +508,14 @@ ${kbText || "No knowledge base entries available."}
 
     if (profile) {
       const lastUserMsg = messages.filter((m: ChatMessage) => m.role === "user").pop();
+      const truncate = (s: string, max: number) => s.length > max ? s.slice(0, max) + "…" : s;
       await supabase.from("audit_logs").insert({
         user_id: userId,
         action: "ai_chat",
         entity_type: "ai_chat",
         new_values: {
-          user_message: lastUserMsg?.content || "",
-          ai_response: finalText,
+          user_message: truncate(lastUserMsg?.content || "", 500),
+          ai_response: truncate(finalText, 500),
         },
       });
     }

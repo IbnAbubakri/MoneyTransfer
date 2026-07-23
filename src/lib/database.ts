@@ -38,6 +38,24 @@ export async function isAdmin(userId: string): Promise<boolean> {
 }
 
 // =====================================================
+// STATUS TRANSITION VALIDATION
+// =====================================================
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  waiting_for_payment: ["payment_under_review", "cancelled"],
+  payment_under_review: ["payment_confirmed", "rejected", "cancelled"],
+  payment_confirmed: ["awaiting_bank_details", "cancelled"],
+  awaiting_bank_details: ["transfer_in_progress", "cancelled"],
+  transfer_in_progress: ["completed", "cancelled"],
+  completed: [],
+  cancelled: [],
+  rejected: [],
+};
+
+export function isValidTransition(from: string, to: string): boolean {
+  return VALID_TRANSITIONS[from]?.includes(to) ?? false;
+}
+
+// =====================================================
 // EXCHANGE RATE FUNCTIONS
 // =====================================================
 export async function getActiveExchangeRate(): Promise<ExchangeRate | null> {
@@ -201,6 +219,18 @@ export async function updateTransactionStatus(
   adminId: string,
   additionalData?: Record<string, unknown>
 ): Promise<boolean> {
+  // Validate status transition
+  const { data: current } = await supabase
+    .from("transactions")
+    .select("status")
+    .eq("id", transactionId)
+    .single();
+
+  if (current && !isValidTransition(current.status, status)) {
+    console.error(`Invalid transition: ${current.status} → ${status}`);
+    return false;
+  }
+
   const updateData: Record<string, unknown> = {
     status,
     ...additionalData,
@@ -273,12 +303,14 @@ export async function getUserNotifications(
 }
 
 export async function markNotificationAsRead(
-  notificationId: string
+  notificationId: string,
+  userId: string
 ): Promise<boolean> {
   const { error } = await supabase
     .from("notifications")
     .update({ is_read: true })
-    .eq("id", notificationId);
+    .eq("id", notificationId)
+    .eq("user_id", userId);
 
   if (error) {
     console.error("Error marking notification as read:", error);

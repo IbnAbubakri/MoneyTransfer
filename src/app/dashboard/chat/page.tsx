@@ -59,6 +59,11 @@ export default function ChatPage() {
   };
 
   const uploadReceipt = async (file: File): Promise<string | null> => {
+    if (file.size > 10 * 1024 * 1024) {
+      console.error("File too large:", file.size);
+      return null;
+    }
+
     const fileExt = file.name.split(".").pop();
     const fileName = `receipt-${crypto.randomUUID()}.${fileExt}`;
     const { error } = await supabase.storage
