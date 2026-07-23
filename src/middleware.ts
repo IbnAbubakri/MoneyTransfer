@@ -88,35 +88,37 @@ export async function middleware(request: NextRequest) {
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
 
   // Login: 10 requests per 15 minutes per IP
-  if (pathname === "/api/auth/signin" || pathname === "/login") {
+  if (pathname === "/login" || pathname === "/api/auth/login") {
     const { allowed, retryAfterMs } = checkRateLimit(`login:${ip}`, 10, 900_000);
     if (!allowed) {
-      return NextResponse.json(
-        { error: "Too many login attempts. Please try again later." },
-        {
-          status: 429,
-          headers: {
-            "Retry-After": String(Math.ceil(retryAfterMs / 1000)),
-            ...Object.fromEntries(response.headers),
-          },
-        }
+      return addSecurityHeaders(
+        NextResponse.json(
+          { error: "Too many login attempts. Please try again later." },
+          {
+            status: 429,
+            headers: {
+              "Retry-After": String(Math.ceil(retryAfterMs / 1000)),
+            },
+          }
+        )
       );
     }
   }
 
   // Signup: 5 requests per hour per IP
-  if (pathname === "/api/auth/signup" || pathname === "/signup") {
+  if (pathname === "/signup" || pathname === "/api/auth/signup") {
     const { allowed, retryAfterMs } = checkRateLimit(`signup:${ip}`, 5, 3_600_000);
     if (!allowed) {
-      return NextResponse.json(
-        { error: "Too many signup attempts. Please try again later." },
-        {
-          status: 429,
-          headers: {
-            "Retry-After": String(Math.ceil(retryAfterMs / 1000)),
-            ...Object.fromEntries(response.headers),
-          },
-        }
+      return addSecurityHeaders(
+        NextResponse.json(
+          { error: "Too many signup attempts. Please try again later." },
+          {
+            status: 429,
+            headers: {
+              "Retry-After": String(Math.ceil(retryAfterMs / 1000)),
+            },
+          }
+        )
       );
     }
   }
@@ -125,15 +127,16 @@ export async function middleware(request: NextRequest) {
   if (pathname === "/api/chat") {
     const { allowed, retryAfterMs } = checkRateLimit(`chat:${ip}`, 30, 300_000);
     if (!allowed) {
-      return NextResponse.json(
-        { error: "Too many requests. Please slow down." },
-        {
-          status: 429,
-          headers: {
-            "Retry-After": String(Math.ceil(retryAfterMs / 1000)),
-            ...Object.fromEntries(response.headers),
-          },
-        }
+      return addSecurityHeaders(
+        NextResponse.json(
+          { error: "Too many requests. Please slow down." },
+          {
+            status: 429,
+            headers: {
+              "Retry-After": String(Math.ceil(retryAfterMs / 1000)),
+            },
+          }
+        )
       );
     }
   }
@@ -209,6 +212,9 @@ export const config = {
     "/dashboard/:path*",
     "/admin/:path*",
     "/api/chat",
+    "/api/auth/:path*",
     "/api/admin/:path*",
+    "/login",
+    "/signup",
   ],
 };
