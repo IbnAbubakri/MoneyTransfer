@@ -367,9 +367,18 @@ CREATE POLICY "Users can update own notifications"
   ON notifications FOR UPDATE
   USING (user_id = auth.uid());
 
-CREATE POLICY "System can create notifications"
+CREATE POLICY "Users can create own notifications"
   ON notifications FOR INSERT
-  WITH CHECK (true);
+  WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "Admins can create notifications for anyone"
+  ON notifications FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
 
 -- =====================================================
 -- AUDIT LOGS POLICIES
