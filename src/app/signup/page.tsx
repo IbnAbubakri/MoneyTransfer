@@ -6,8 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth-context";
-import { motion } from "framer-motion";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, CheckCircle2 } from "lucide-react";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -19,6 +18,11 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -65,15 +69,14 @@ export default function SignupPage() {
   if (success) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          className="w-full max-w-md text-center"
+        <div
+          className={`w-full max-w-md text-center transition-all duration-400 ease-out ${
+            mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"
+          }`}
         >
-          <div className="bg-card rounded-2xl border border-border p-8">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-success/10 text-success text-xl font-bold mb-4">
-              ✓
+          <div className="bg-card rounded-xl border border-border p-8">
+            <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+              <CheckCircle2 className="w-7 h-7 text-primary" />
             </div>
             <h2 className="text-lg font-semibold text-foreground mb-2">Check your email</h2>
             <p className="text-sm text-muted-foreground mb-6">
@@ -83,27 +86,26 @@ export default function SignupPage() {
               Back to sign in
             </Link>
           </div>
-        </motion.div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        className="w-full max-w-md"
+      <div
+        className={`w-full max-w-md transition-all duration-400 ease-out ${
+          mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"
+        }`}
       >
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary text-white text-xl font-bold mb-4">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-primary text-primary-foreground text-xl font-bold mb-4">
             MT
           </div>
           <h1 className="text-2xl font-bold text-foreground">Get Started</h1>
           <p className="text-muted-foreground mt-1 text-sm">Create your MoneyTransfer account</p>
         </div>
-        <div className="bg-card rounded-2xl border border-border p-8">
+        <div className="bg-card rounded-xl border border-border p-8">
           <h2 className="text-lg font-semibold text-foreground mb-6">Create account</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -156,7 +158,7 @@ export default function SignupPage() {
             <Link href="/login" className="text-primary font-medium hover:underline">Sign in</Link>
           </p>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

@@ -44,7 +44,7 @@ export default function AdminOverviewPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -52,79 +52,79 @@ export default function AdminOverviewPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-        <p className="text-gray-500 mt-1">Overview of your exchange platform</p>
+        <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
+        <p className="text-muted-foreground mt-1">Overview of your exchange platform</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
               <AlertCircle className="w-5 h-5 text-amber-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Pending Payment</p>
-              <p className="text-2xl font-bold text-gray-900">{stats?.pendingPayments || 0}</p>
+              <p className="text-sm text-muted-foreground">Pending Payment</p>
+              <p className="text-2xl font-bold text-foreground">{stats?.pendingPayments || 0}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
               <Clock className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Under Review</p>
-              <p className="text-2xl font-bold text-gray-900">{stats?.awaitingApproval || 0}</p>
+              <p className="text-sm text-muted-foreground">Under Review</p>
+              <p className="text-2xl font-bold text-foreground">{stats?.awaitingApproval || 0}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
               <CheckCircle2 className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Completed Today</p>
-              <p className="text-2xl font-bold text-gray-900">{stats?.completedToday || 0}</p>
+              <p className="text-sm text-muted-foreground">Completed Today</p>
+              <p className="text-2xl font-bold text-foreground">{stats?.completedToday || 0}</p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
-              <Users className="w-5 h-5 text-indigo-600" />
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Users className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total Customers</p>
-              <p className="text-2xl font-bold text-gray-900">{stats?.totalCustomers || 0}</p>
+              <p className="text-sm text-muted-foreground">Total Customers</p>
+              <p className="text-2xl font-bold text-foreground">{stats?.totalCustomers || 0}</p>
             </div>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
               <Banknote className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total SAR Volume</p>
-              <p className="text-xl font-bold text-gray-900">
+              <p className="text-sm text-muted-foreground">Total SAR Volume</p>
+              <p className="text-xl font-bold text-foreground">
                 {(stats?.totalSarVolume || 0).toLocaleString()} SAR
               </p>
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-teal-600" />
+            <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
-              <p className="text-sm text-gray-500">Total NGN Volume</p>
-              <p className="text-xl font-bold text-gray-900">
+              <p className="text-sm text-muted-foreground">Total NGN Volume</p>
+              <p className="text-xl font-bold text-foreground">
                 ₦{(stats?.totalNgnVolume || 0).toLocaleString()}
               </p>
             </div>
@@ -133,66 +133,66 @@ export default function AdminOverviewPage() {
       </div>
 
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">Recent Transactions</h2>
+        <h2 className="text-lg font-semibold text-foreground">Recent Transactions</h2>
         <Link
           href="/admin/transactions"
-          className="text-sm font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+          className="text-sm font-medium text-primary hover:text-primary/80 flex items-center gap-1"
         >
           View all <ArrowUpRight className="w-4 h-4" />
         </Link>
       </div>
 
       {recentTxns.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <ArrowLeftRight className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900">No transactions yet</h3>
-          <p className="text-gray-500">Transactions will appear here as customers create them</p>
+        <div className="bg-card rounded-xl border border-border p-12 text-center">
+          <ArrowLeftRight className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground">No transactions yet</h3>
+          <p className="text-muted-foreground">Transactions will appear here as customers create them</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                <tr className="border-b border-border">
+                  <th scope="col" className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">
                     Reference
                   </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                  <th scope="col" className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">
                     Customer
                   </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                  <th scope="col" className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">
                     Amount
                   </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                  <th scope="col" className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">
                     Status
                   </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                  <th scope="col" className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">
                     Date
                   </th>
-                  <th className="px-4 py-3" />
+                  <th scope="col" className="px-4 py-3" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-border/50">
                 {recentTxns.map((txn) => {
-                  const sc = statusConfig[txn.status] || { label: txn.status, color: "text-gray-600 bg-gray-50" };
+                  const sc = statusConfig[txn.status] || { label: txn.status, color: "text-muted-foreground bg-muted" };
                   return (
-                    <tr key={txn.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={txn.id} className="hover:bg-muted/50 transition-colors">
                       <td className="px-4 py-3">
-                        <span className="font-mono text-sm text-gray-900">{txn.reference}</span>
+                        <span className="font-mono text-sm text-foreground">{txn.reference}</span>
                       </td>
                       <td className="px-4 py-3">
                         <div>
-                          <p className="text-sm font-medium text-gray-900">
+                          <p className="text-sm font-medium text-foreground">
                             {txn.profiles?.full_name || "Unknown"}
                           </p>
-                          <p className="text-xs text-gray-500">{txn.profiles?.email}</p>
+                          <p className="text-xs text-muted-foreground">{txn.profiles?.email}</p>
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-foreground">
                           {txn.sar_amount.toLocaleString()} SAR
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-muted-foreground">
                           ₦{txn.ngn_amount.toLocaleString()}
                         </p>
                       </td>
@@ -201,7 +201,7 @@ export default function AdminOverviewPage() {
                           {sc.label}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-500">
+                      <td className="px-4 py-3 text-sm text-muted-foreground">
                         {new Date(txn.created_at).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
@@ -210,7 +210,7 @@ export default function AdminOverviewPage() {
                       <td className="px-4 py-3">
                         <Link
                           href={`/admin/transactions/${txn.id}`}
-                          className="text-indigo-600 hover:text-indigo-700"
+                          className="text-primary hover:text-primary/80"
                         >
                           <ArrowUpRight className="w-4 h-4" />
                         </Link>

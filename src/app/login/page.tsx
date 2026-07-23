@@ -6,7 +6,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth-context";
-import { motion } from "framer-motion";
 import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
@@ -17,6 +16,11 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -55,20 +59,19 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        className="w-full max-w-md"
+      <div
+        className={`w-full max-w-md transition-all duration-400 ease-out ${
+          mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"
+        }`}
       >
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary text-white text-xl font-bold mb-4">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-primary text-primary-foreground text-xl font-bold mb-4">
             MT
           </div>
           <h1 className="text-2xl font-bold text-foreground">MoneyTransfer</h1>
           <p className="text-muted-foreground mt-1 text-sm">AI-Powered SAR to NGN Exchange</p>
         </div>
-        <div className="bg-card rounded-2xl border border-border p-8">
+        <div className="bg-card rounded-xl border border-border p-8">
           <h2 className="text-lg font-semibold text-foreground mb-6">Welcome back</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -114,7 +117,7 @@ export default function LoginPage() {
           </p>
         </div>
         <p className="text-center text-xs text-muted-foreground/50 mt-6">© 2026 MoneyTransfer. All rights reserved.</p>
-      </motion.div>
+      </div>
     </div>
   );
 }

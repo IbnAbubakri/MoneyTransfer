@@ -163,11 +163,12 @@ export async function getCustomerTransactions(
   return data || [];
 }
 
-export async function getAllTransactions(): Promise<TransactionWithCustomer[]> {
+export async function getAllTransactions(limit = 50): Promise<TransactionWithCustomer[]> {
   const { data, error } = await supabase
     .from("transactions")
     .select("*, profiles(*)")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(limit);
 
   if (error) {
     console.error("Error fetching transactions:", error);

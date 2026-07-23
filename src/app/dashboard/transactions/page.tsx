@@ -30,10 +30,10 @@ function statusConfig(status: string) {
     awaiting_bank_details: { label: "Bank Details Needed", color: "text-purple-600 bg-purple-50", icon: Clock },
     transfer_in_progress: { label: "Transfer In Progress", color: "text-blue-600 bg-blue-50", icon: Clock },
     completed: { label: "Completed", color: "text-emerald-600 bg-emerald-50", icon: CheckCircle2 },
-    cancelled: { label: "Cancelled", color: "text-gray-600 bg-gray-100", icon: XCircle },
-    rejected: { label: "Rejected", color: "text-red-600 bg-red-50", icon: XCircle },
+    cancelled: { label: "Cancelled", color: "text-muted-foreground bg-muted", icon: XCircle },
+    rejected: { label: "Rejected", color: "text-destructive bg-destructive/10", icon: XCircle },
   };
-  return map[status] || { label: status, color: "text-gray-600 bg-gray-50", icon: Clock };
+  return map[status] || { label: status, color: "text-muted-foreground bg-muted", icon: Clock };
 }
 
 export default function TransactionsPage() {
@@ -61,7 +61,7 @@ export default function TransactionsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -69,20 +69,20 @@ export default function TransactionsPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Transaction History</h1>
-        <p className="text-gray-500 mt-1">{transactions.length} total transactions</p>
+        <h1 className="text-2xl font-bold text-foreground">Transaction History</h1>
+        <p className="text-muted-foreground mt-1">{transactions.length} total transactions</p>
       </div>
 
       <div className="flex items-center gap-2">
-        <Filter className="w-4 h-4 text-gray-400" />
+        <Filter className="w-4 h-4 text-muted-foreground" />
         {statusFilters.map((f) => (
           <button
             key={f.value}
             onClick={() => setFilter(f.value)}
             className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
               filter === f.value
-                ? "bg-emerald-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:bg-accent"
             }`}
           >
             {f.label}
@@ -91,12 +91,12 @@ export default function TransactionsPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <ArrowLeftRight className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-1">
+        <div className="bg-card rounded-xl border border-border p-12 text-center">
+          <ArrowLeftRight className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-1">
             {filter === "all" ? "No transactions yet" : "No matching transactions"}
           </h3>
-          <p className="text-gray-500 mb-4">
+          <p className="text-muted-foreground mb-4">
             {filter === "all"
               ? "Start your first SAR to NGN exchange"
               : "Try a different filter"}
@@ -104,30 +104,30 @@ export default function TransactionsPage() {
           {filter === "all" && (
             <Link
               href="/dashboard/new-transaction"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors"
             >
               Get Started
             </Link>
           )}
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="divide-y divide-gray-100">
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
+          <div className="divide-y divide-border/50">
             {filtered.map((txn) => {
               const sc = statusConfig(txn.status);
               return (
                 <Link
                   key={txn.id}
                   href={`/dashboard/transactions/${txn.id}`}
-                  className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+                  className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                      <ArrowLeftRight className="w-5 h-5 text-gray-500" />
+                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                      <ArrowLeftRight className="w-5 h-5 text-muted-foreground" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{txn.reference}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-sm font-medium text-foreground">{txn.reference}</p>
+                      <p className="text-xs text-muted-foreground">
                         {new Date(txn.created_at).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
@@ -140,10 +140,10 @@ export default function TransactionsPage() {
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right hidden sm:block">
-                      <p className="text-sm font-semibold text-gray-900">
+                      <p className="text-sm font-semibold text-foreground">
                         {txn.sar_amount.toLocaleString()} SAR
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         ₦{txn.ngn_amount.toLocaleString()}
                       </p>
                     </div>
@@ -151,7 +151,7 @@ export default function TransactionsPage() {
                       <sc.icon className="w-3 h-3 mr-1" />
                       {sc.label}
                     </span>
-                    <ArrowUpRight className="w-4 h-4 text-gray-400" />
+                    <ArrowUpRight className="w-4 h-4 text-muted-foreground" />
                   </div>
                 </Link>
               );

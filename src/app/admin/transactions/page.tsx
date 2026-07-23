@@ -23,8 +23,8 @@ const statusConfig: Record<string, { label: string; color: string }> = {
   awaiting_bank_details: { label: "Awaiting Bank", color: "text-purple-600 bg-purple-50" },
   transfer_in_progress: { label: "In Progress", color: "text-blue-600 bg-blue-50" },
   completed: { label: "Completed", color: "text-emerald-600 bg-emerald-50" },
-  cancelled: { label: "Cancelled", color: "text-gray-600 bg-gray-100" },
-  rejected: { label: "Rejected", color: "text-red-600 bg-red-50" },
+  cancelled: { label: "Cancelled", color: "text-muted-foreground bg-muted" },
+  rejected: { label: "Rejected", color: "text-destructive bg-destructive/10" },
 };
 
 export default function AdminTransactionsPage() {
@@ -47,14 +47,14 @@ export default function AdminTransactionsPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
-        <p className="text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Transactions</h1>
+        <p className="text-muted-foreground mt-1">
           Manage all exchange transactions
         </p>
       </div>
 
       <div className="flex items-center gap-2 flex-wrap">
-        <Filter className="w-4 h-4 text-gray-400" />
+        <Filter className="w-4 h-4 text-muted-foreground" />
         {statusFilters.map((f) => (
           <button
             key={f.value}
@@ -64,8 +64,8 @@ export default function AdminTransactionsPage() {
             }}
             className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
               filter === f.value
-                ? "bg-indigo-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:bg-accent"
             }`}
           >
             {f.label}
@@ -75,63 +75,49 @@ export default function AdminTransactionsPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       ) : transactions.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <p className="text-gray-500">No transactions found</p>
+        <div className="bg-card rounded-xl border border-border p-12 text-center">
+          <p className="text-muted-foreground">No transactions found</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
-                    Reference
-                  </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
-                    Customer
-                  </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
-                    SAR Amount
-                  </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
-                    NGN Amount
-                  </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
-                    Rate
-                  </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
-                    Status
-                  </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
-                    Date
-                  </th>
-                  <th className="px-4 py-3" />
+                <tr className="border-b border-border">
+                  <th scope="col" className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Reference</th>
+                  <th scope="col" className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Customer</th>
+                  <th scope="col" className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">SAR Amount</th>
+                  <th scope="col" className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">NGN Amount</th>
+                  <th scope="col" className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Rate</th>
+                  <th scope="col" className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Status</th>
+                  <th scope="col" className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Date</th>
+                  <th scope="col" className="px-4 py-3" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-border/50">
                 {transactions.map((txn) => {
-                  const sc = statusConfig[txn.status] || { label: txn.status, color: "text-gray-600 bg-gray-50" };
+                  const sc = statusConfig[txn.status] || { label: txn.status, color: "text-muted-foreground bg-muted" };
                   return (
-                    <tr key={txn.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={txn.id} className="hover:bg-muted/50 transition-colors">
                       <td className="px-4 py-3">
-                        <span className="font-mono text-sm text-gray-900">{txn.reference}</span>
+                        <span className="font-mono text-sm text-foreground">{txn.reference}</span>
                       </td>
                       <td className="px-4 py-3">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-foreground">
                           {txn.profiles?.full_name || "Unknown"}
                         </p>
-                        <p className="text-xs text-gray-500">{txn.profiles?.email}</p>
+                        <p className="text-xs text-muted-foreground">{txn.profiles?.email}</p>
                       </td>
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                      <td className="px-4 py-3 text-sm font-medium text-foreground">
                         {txn.sar_amount.toLocaleString()}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-900">
+                      <td className="px-4 py-3 text-sm text-foreground">
                         ₦{txn.ngn_amount.toLocaleString()}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-500">
+                      <td className="px-4 py-3 text-sm text-muted-foreground">
                         ₦{txn.exchange_rate}
                       </td>
                       <td className="px-4 py-3">
@@ -139,7 +125,7 @@ export default function AdminTransactionsPage() {
                           {sc.label}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-500">
+                      <td className="px-4 py-3 text-sm text-muted-foreground">
                         {new Date(txn.created_at).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
@@ -150,7 +136,7 @@ export default function AdminTransactionsPage() {
                       <td className="px-4 py-3">
                         <Link
                           href={`/admin/transactions/${txn.id}`}
-                          className="text-indigo-600 hover:text-indigo-700"
+                          className="text-primary hover:text-primary/80"
                         >
                           <ArrowUpRight className="w-4 h-4" />
                         </Link>
