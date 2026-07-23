@@ -1,37 +1,61 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
-// ── Rate limiter (in-memory, per-instance) ──────────────────────────
-const rateMap = new Map<string, { count: number; resetAt: number }>();
+// ── Supabase service-role client (server-side only, for rate limiting) ──
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { autoRefreshToken: false, persistSession: false } }
+);
 
-function checkRateLimit(
+// ── Persistent rate limiter (Supabase-backed) ──────────────────────────
+async function checkRateLimit(
   key: string,
   maxRequests: number,
   windowMs: number
-): { allowed: boolean; retryAfterMs: number } {
+): Promise<{ allowed: boolean; retryAfterMs: number }> {
   const now = Date.now();
-  const entry = rateMap.get(key);
+  const windowStart = now - windowMs;
 
-  if (!entry || now > entry.resetAt) {
-    rateMap.set(key, { count: 1, resetAt: now + windowMs });
+  // Clean up expired entries for this key (older than window)
+  await supabaseAdmin
+    .from("rate_limits")
+    .delete()
+    .eq("key", key)
+    .lt("window_start", windowStart);
+
+  // Get current count in the active window
+  const { data: existing } = await supabaseAdmin
+    .from("rate_limits")
+    .select("count, window_start")
+    .eq("key", key)
+    .gt("window_start", windowStart)
+    .single();
+
+  if (!existing) {
+    // First request in this window — insert
+    await supabaseAdmin.from("rate_limits").insert({
+      key,
+      count: 1,
+      window_start: now,
+    });
     return { allowed: true, retryAfterMs: 0 };
   }
 
-  entry.count++;
-  if (entry.count > maxRequests) {
-    return { allowed: false, retryAfterMs: entry.resetAt - now };
+  if (existing.count >= maxRequests) {
+    const retryAfterMs = existing.window_start + windowMs - now;
+    return { allowed: false, retryAfterMs: Math.max(retryAfterMs, 0) };
   }
-  return { allowed: true, retryAfterMs: 0 };
-}
 
-// Evict stale entries every 5 minutes
-if (typeof setInterval !== "undefined") {
-  setInterval(() => {
-    const now = Date.now();
-    for (const [key, entry] of rateMap) {
-      if (now > entry.resetAt) rateMap.delete(key);
-    }
-  }, 300_000);
+  // Increment count
+  await supabaseAdmin
+    .from("rate_limits")
+    .update({ count: existing.count + 1 })
+    .eq("key", key)
+    .eq("window_start", existing.window_start);
+
+  return { allowed: true, retryAfterMs: 0 };
 }
 
 // ── Security headers ────────────────────────────────────────────────
@@ -46,7 +70,7 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
   );
   response.headers.set(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self'; connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com; frame-ancestors 'none';"
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self'; connect-src 'self' https://*.supabase.co https://generativelanguage.googleapis.com; frame-ancestors 'none';"
   );
   return response;
 }
@@ -83,13 +107,13 @@ export async function middleware(request: NextRequest) {
   // Security headers on every response
   response = addSecurityHeaders(response);
 
-  // ── Rate limiting ───────────────────────────────────────────────
+  // ── Rate limiting (persistent via Supabase) ─────────────────────
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
 
   // Login: 10 requests per 15 minutes per IP
   if (pathname === "/login" || pathname === "/api/auth/login") {
-    const { allowed, retryAfterMs } = checkRateLimit(`login:${ip}`, 10, 900_000);
+    const { allowed, retryAfterMs } = await checkRateLimit(`login:${ip}`, 10, 900_000);
     if (!allowed) {
       return addSecurityHeaders(
         NextResponse.json(
@@ -107,7 +131,7 @@ export async function middleware(request: NextRequest) {
 
   // Signup: 5 requests per hour per IP
   if (pathname === "/signup" || pathname === "/api/auth/signup") {
-    const { allowed, retryAfterMs } = checkRateLimit(`signup:${ip}`, 5, 3_600_000);
+    const { allowed, retryAfterMs } = await checkRateLimit(`signup:${ip}`, 5, 3_600_000);
     if (!allowed) {
       return addSecurityHeaders(
         NextResponse.json(
@@ -125,7 +149,7 @@ export async function middleware(request: NextRequest) {
 
   // Chat API: 30 requests per 5 minutes per IP
   if (pathname === "/api/chat") {
-    const { allowed, retryAfterMs } = checkRateLimit(`chat:${ip}`, 30, 300_000);
+    const { allowed, retryAfterMs } = await checkRateLimit(`chat:${ip}`, 30, 300_000);
     if (!allowed) {
       return addSecurityHeaders(
         NextResponse.json(
