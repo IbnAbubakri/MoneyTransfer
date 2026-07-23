@@ -17,13 +17,13 @@ const statusFilters: { value: string; label: string; status?: TransactionStatus 
 ];
 
 const statusConfig: Record<string, { label: string; color: string }> = {
-  waiting_for_payment: { label: "Awaiting Payment", color: "text-amber-600 bg-amber-50" },
-  payment_under_review: { label: "Reviewing", color: "text-blue-600 bg-blue-50" },
-  payment_confirmed: { label: "Confirmed", color: "text-emerald-600 bg-emerald-50" },
-  awaiting_bank_details: { label: "Awaiting Bank", color: "text-purple-600 bg-purple-50" },
-  transfer_in_progress: { label: "In Progress", color: "text-blue-600 bg-blue-50" },
-  completed: { label: "Completed", color: "text-emerald-600 bg-emerald-50" },
-  cancelled: { label: "Cancelled", color: "text-muted-foreground bg-muted" },
+  waiting_for_payment: { label: "Awaiting Payment", color: "text-accent-foreground bg-accent" },
+  payment_under_review: { label: "Reviewing", color: "text-accent-foreground bg-accent" },
+  payment_confirmed: { label: "Confirmed", color: "text-primary bg-primary/10" },
+  awaiting_bank_details: { label: "Awaiting Bank", color: "text-accent-foreground bg-accent" },
+  transfer_in_progress: { label: "In Progress", color: "text-accent-foreground bg-accent" },
+  completed: { label: "Completed", color: "text-primary bg-primary/10" },
+  cancelled: { label: "Cancelled", color: "text-muted-foreground bg-accent" },
   rejected: { label: "Rejected", color: "text-destructive bg-destructive/10" },
 };
 

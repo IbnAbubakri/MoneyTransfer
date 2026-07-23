@@ -28,72 +28,72 @@ export default function AdminAuditLogsPage() {
   );
 
   const actionColors: Record<string, string> = {
-    status_changed_completed: "text-emerald-600 bg-emerald-50",
-    status_changed_cancelled: "text-red-600 bg-red-50",
-    status_changed_rejected: "text-red-600 bg-red-50",
-    status_changed_payment_confirmed: "text-emerald-600 bg-emerald-50",
-    status_changed_payment_under_review: "text-blue-600 bg-blue-50",
-    chat_message: "text-purple-600 bg-purple-50",
+    status_changed_completed: "text-primary bg-primary/10",
+    status_changed_cancelled: "text-destructive bg-destructive/10",
+    status_changed_rejected: "text-destructive bg-destructive/10",
+    status_changed_payment_confirmed: "text-primary bg-primary/10",
+    status_changed_payment_under_review: "text-accent-foreground bg-accent",
+    chat_message: "text-accent-foreground bg-accent",
   };
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Audit Logs</h1>
-          <p className="text-gray-500 mt-1">{logs.length} recorded actions</p>
+          <h1 className="text-2xl font-bold text-card-foreground">Audit Logs</h1>
+          <p className="text-muted-foreground mt-1">{logs.length} recorded actions</p>
         </div>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search logs..."
-            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none w-64"
+            className="pl-10 pr-4 py-2 border border-input rounded-lg text-sm focus:ring-2 focus:ring-ring focus:border-ring outline-none w-64"
           />
         </div>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <ScrollText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900">No audit logs found</h3>
-          <p className="text-gray-500">
+        <div className="bg-card rounded-xl border border-border p-12 text-center">
+          <ScrollText className="w-12 h-12 text-muted-foreground/40 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-card-foreground">No audit logs found</h3>
+          <p className="text-muted-foreground">
             {search ? "Try a different search term" : "Actions will be recorded here"}
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                <tr className="border-b border-border">
+                  <th scope="col" className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">
                     Time
                   </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                  <th scope="col" className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">
                     User
                   </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                  <th scope="col" className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">
                     Action
                   </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                  <th scope="col" className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">
                     Entity
                   </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-4 py-3">
+                  <th scope="col" className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">
                     Details
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-border">
                 {filtered.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
+                  <tr key={log.id} className="hover:bg-accent transition-colors">
+                    <td className="px-4 py-3 text-sm text-muted-foreground whitespace-nowrap">
                       {new Date(log.created_at).toLocaleString("en-US", {
                         month: "short",
                         day: "numeric",
@@ -103,25 +103,25 @@ export default function AdminAuditLogsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-card-foreground">
                           {log.profiles?.full_name || "System"}
                         </p>
-                        <p className="text-xs text-gray-500">{log.profiles?.email}</p>
+                        <p className="text-xs text-muted-foreground">{log.profiles?.email}</p>
                       </div>
                     </td>
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          actionColors[log.action] || "text-gray-600 bg-gray-100"
+                          actionColors[log.action] || "text-muted-foreground bg-accent"
                         }`}
                       >
                         {log.action.replace(/_/g, " ")}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500">
+                    <td className="px-4 py-3 text-sm text-muted-foreground">
                       {log.entity_type}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">
+                    <td className="px-4 py-3 text-sm text-muted-foreground max-w-xs truncate">
                       {log.entity_id && (
                         <span className="font-mono text-xs">{log.entity_id.slice(0, 8)}...</span>
                       )}

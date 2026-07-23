@@ -14,11 +14,11 @@ import { BrainCircuit, Plus, Trash2, Edit3, Save, X, ChevronDown } from "lucide-
 const categories: KnowledgeCategory[] = ["policy", "faq", "hours", "payment", "general"];
 
 const categoryColors: Record<string, string> = {
-  policy: "text-blue-600 bg-blue-50",
-  faq: "text-purple-600 bg-purple-50",
-  hours: "text-amber-600 bg-amber-50",
-  payment: "text-emerald-600 bg-emerald-50",
-  general: "text-gray-600 bg-gray-100",
+  policy: "text-accent-foreground bg-accent",
+  faq: "text-accent-foreground bg-accent",
+  hours: "text-accent-foreground bg-accent",
+  payment: "text-primary bg-primary/10",
+  general: "text-muted-foreground bg-accent",
 };
 
 export default function AdminKnowledgeBasePage() {
@@ -102,7 +102,7 @@ export default function AdminKnowledgeBasePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -111,8 +111,8 @@ export default function AdminKnowledgeBasePage() {
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">AI Knowledge Base</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-card-foreground">AI Knowledge Base</h1>
+          <p className="text-muted-foreground mt-1">
             Manage responses for the AI assistant ({entries.length} entries)
           </p>
         </div>
@@ -121,7 +121,7 @@ export default function AdminKnowledgeBasePage() {
             resetForm();
             setShowForm(true);
           }}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add Entry
@@ -129,23 +129,23 @@ export default function AdminKnowledgeBasePage() {
       </div>
 
       {showForm && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+        <div className="bg-card rounded-xl border border-border p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-card-foreground">
               {editingId ? "Edit Entry" : "New Entry"}
             </h3>
-            <button onClick={resetForm} className="p-1 rounded hover:bg-gray-100">
-              <X className="w-5 h-5 text-gray-400" />
+            <button onClick={resetForm} className="p-1 rounded hover:bg-accent">
+              <X className="w-5 h-5 text-muted-foreground/60" />
             </button>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+            <label className="block text-sm font-medium text-foreground/80 mb-1">Category</label>
             <div className="relative">
               <select
                 value={formCategory}
                 onChange={(e) => setFormCategory(e.target.value as KnowledgeCategory)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none appearance-none"
+                className="w-full px-3 py-2.5 border border-input rounded-lg text-sm focus:ring-2 focus:ring-ring focus:border-ring outline-none appearance-none"
               >
                 {categories.map((c) => (
                   <option key={c} value={c}>
@@ -153,12 +153,12 @@ export default function AdminKnowledgeBasePage() {
                   </option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60 pointer-events-none" />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground/80 mb-1">
               Question (trigger phrase)
             </label>
             <input
@@ -166,32 +166,32 @@ export default function AdminKnowledgeBasePage() {
               value={formQuestion}
               onChange={(e) => setFormQuestion(e.target.value)}
               placeholder="e.g. How do I make a payment?"
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+              className="w-full px-3 py-2.5 border border-input rounded-lg text-sm focus:ring-2 focus:ring-ring focus:border-ring outline-none"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Answer</label>
+            <label className="block text-sm font-medium text-foreground/80 mb-1">Answer</label>
             <textarea
               value={formAnswer}
               onChange={(e) => setFormAnswer(e.target.value)}
               placeholder="The AI will use this response..."
               rows={3}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none"
+              className="w-full px-3 py-2.5 border border-input rounded-lg text-sm focus:ring-2 focus:ring-ring focus:border-ring outline-none resize-none"
             />
           </div>
 
           <div className="flex justify-end gap-2">
             <button
               onClick={resetForm}
-              className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground bg-accent rounded-lg hover:bg-accent/80 transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={!formQuestion.trim() || !formAnswer.trim() || saving}
-              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
             >
               <Save className="w-4 h-4" />
               {saving ? "Saving..." : editingId ? "Update" : "Create"}
@@ -201,13 +201,13 @@ export default function AdminKnowledgeBasePage() {
       )}
 
       {entries.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-          <BrainCircuit className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900">No entries yet</h3>
-          <p className="text-gray-500 mb-4">Add knowledge base entries to train your AI assistant</p>
+        <div className="bg-card rounded-xl border border-border p-12 text-center">
+          <BrainCircuit className="w-12 h-12 text-muted-foreground/40 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-card-foreground">No entries yet</h3>
+          <p className="text-muted-foreground mb-4">Add knowledge base entries to train your AI assistant</p>
           <button
             onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add First Entry
@@ -218,8 +218,8 @@ export default function AdminKnowledgeBasePage() {
           {entries.map((entry) => (
             <div
               key={entry.id}
-              className={`bg-white rounded-xl border p-5 transition-colors ${
-                entry.is_active ? "border-gray-200" : "border-gray-100 opacity-60"
+              className={`bg-card rounded-xl border p-5 transition-colors ${
+                entry.is_active ? "border-border" : "border-border opacity-60"
               }`}
             >
               <div className="flex items-start justify-between gap-4">
@@ -227,40 +227,40 @@ export default function AdminKnowledgeBasePage() {
                   <div className="flex items-center gap-2 mb-2">
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        categoryColors[entry.category] || "text-gray-600 bg-gray-100"
+                        categoryColors[entry.category] || "text-muted-foreground bg-accent"
                       }`}
                     >
                       {entry.category}
                     </span>
                     {!entry.is_active && (
-                      <span className="text-xs text-gray-400">Inactive</span>
+                      <span className="text-xs text-muted-foreground/60">Inactive</span>
                     )}
                   </div>
-                  <p className="text-sm font-medium text-gray-900 mb-1">{entry.question}</p>
-                  <p className="text-sm text-gray-500">{entry.answer}</p>
+                  <p className="text-sm font-medium text-card-foreground mb-1">{entry.question}</p>
+                  <p className="text-sm text-muted-foreground">{entry.answer}</p>
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <button
                     onClick={() => handleToggleActive(entry.id, entry.is_active)}
                     className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
                       entry.is_active
-                        ? "text-gray-600 bg-gray-100 hover:bg-gray-200"
-                        : "text-emerald-600 bg-emerald-50 hover:bg-emerald-100"
+                        ? "text-muted-foreground bg-accent hover:bg-accent/80"
+                        : "text-primary bg-primary/10 hover:bg-primary/20"
                     }`}
                   >
                     {entry.is_active ? "Disable" : "Enable"}
                   </button>
                   <button
                     onClick={() => handleEdit(entry)}
-                    className="p-1.5 rounded hover:bg-gray-100 transition-colors"
+                    className="p-1.5 rounded hover:bg-accent transition-colors"
                   >
-                    <Edit3 className="w-4 h-4 text-gray-400" />
+                    <Edit3 className="w-4 h-4 text-muted-foreground/60" />
                   </button>
                   <button
                     onClick={() => handleDelete(entry.id)}
-                    className="p-1.5 rounded hover:bg-red-50 transition-colors"
+                    className="p-1.5 rounded hover:bg-destructive/10 transition-colors"
                   >
-                    <Trash2 className="w-4 h-4 text-red-400" />
+                    <Trash2 className="w-4 h-4 text-destructive/70" />
                   </button>
                 </div>
               </div>

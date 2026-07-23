@@ -24,16 +24,16 @@ const activeStatuses = [
 
 function statusConfig(status: string) {
   const map: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-    waiting_for_payment: { label: "Awaiting Payment", color: "text-amber-600 bg-amber-50", icon: Clock },
-    payment_under_review: { label: "Reviewing", color: "text-blue-600 bg-blue-50", icon: Clock },
-    payment_confirmed: { label: "Confirmed", color: "text-emerald-600 bg-emerald-50", icon: CheckCircle2 },
-    awaiting_bank_details: { label: "Bank Details Needed", color: "text-purple-600 bg-purple-50", icon: Clock },
-    transfer_in_progress: { label: "Transfer In Progress", color: "text-blue-600 bg-blue-50", icon: Clock },
-    completed: { label: "Completed", color: "text-emerald-600 bg-emerald-50", icon: CheckCircle2 },
-    cancelled: { label: "Cancelled", color: "text-muted-foreground bg-muted", icon: XCircle },
+    waiting_for_payment: { label: "Awaiting Payment", color: "text-accent-foreground bg-accent", icon: Clock },
+    payment_under_review: { label: "Reviewing", color: "text-accent-foreground bg-accent", icon: Clock },
+    payment_confirmed: { label: "Confirmed", color: "text-primary bg-primary/10", icon: CheckCircle2 },
+    awaiting_bank_details: { label: "Bank Details Needed", color: "text-accent-foreground bg-accent", icon: Clock },
+    transfer_in_progress: { label: "Transfer In Progress", color: "text-accent-foreground bg-accent", icon: Clock },
+    completed: { label: "Completed", color: "text-primary bg-primary/10", icon: CheckCircle2 },
+    cancelled: { label: "Cancelled", color: "text-muted-foreground bg-accent", icon: XCircle },
     rejected: { label: "Rejected", color: "text-destructive bg-destructive/10", icon: XCircle },
   };
-  return map[status] || { label: status, color: "text-muted-foreground bg-muted", icon: Clock };
+  return map[status] || { label: status, color: "text-muted-foreground bg-accent", icon: Clock };
 }
 
 export default function TransactionsPage() {

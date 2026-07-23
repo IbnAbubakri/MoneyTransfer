@@ -19,8 +19,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -30,22 +30,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <AdminSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="lg:pl-72">
-        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200">
+        <header className="sticky top-0 z-30 bg-card/80 backdrop-blur-md border-b border-border">
           <div className="flex items-center justify-between h-16 px-4 sm:px-6">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
+              className="lg:hidden p-2 rounded-lg hover:bg-accent"
             >
-              <Menu className="w-5 h-5 text-gray-600" />
+              <Menu className="w-5 h-5 text-muted-foreground" />
             </button>
             <div className="flex-1" />
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 rounded-full">
-              <div className="w-2 h-2 bg-indigo-500 rounded-full" />
-              <span className="text-xs font-medium text-indigo-700">Admin Mode</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full">
+              <div className="w-2 h-2 bg-primary rounded-full" />
+              <span className="text-xs font-medium text-primary">Admin Mode</span>
             </div>
           </div>
         </header>

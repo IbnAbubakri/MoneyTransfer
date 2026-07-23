@@ -16,14 +16,14 @@ import {
 } from "lucide-react";
 
 const statusConfig: Record<string, { label: string; color: string }> = {
-  waiting_for_payment: { label: "Awaiting Payment", color: "text-amber-600 bg-amber-50" },
-  payment_under_review: { label: "Reviewing", color: "text-blue-600 bg-blue-50" },
-  payment_confirmed: { label: "Confirmed", color: "text-emerald-600 bg-emerald-50" },
-  awaiting_bank_details: { label: "Awaiting Bank", color: "text-purple-600 bg-purple-50" },
-  transfer_in_progress: { label: "In Progress", color: "text-blue-600 bg-blue-50" },
-  completed: { label: "Completed", color: "text-emerald-600 bg-emerald-50" },
-  cancelled: { label: "Cancelled", color: "text-gray-600 bg-gray-100" },
-  rejected: { label: "Rejected", color: "text-red-600 bg-red-50" },
+  waiting_for_payment: { label: "Awaiting Payment", color: "text-accent-foreground bg-accent" },
+  payment_under_review: { label: "Reviewing", color: "text-accent-foreground bg-accent" },
+  payment_confirmed: { label: "Confirmed", color: "text-primary bg-primary/10" },
+  awaiting_bank_details: { label: "Awaiting Bank", color: "text-accent-foreground bg-accent" },
+  transfer_in_progress: { label: "In Progress", color: "text-accent-foreground bg-accent" },
+  completed: { label: "Completed", color: "text-primary bg-primary/10" },
+  cancelled: { label: "Cancelled", color: "text-muted-foreground bg-accent" },
+  rejected: { label: "Rejected", color: "text-destructive bg-destructive/10" },
 };
 
 export default function AdminOverviewPage() {
@@ -59,8 +59,8 @@ export default function AdminOverviewPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
-              <AlertCircle className="w-5 h-5 text-amber-600" />
+            <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center">
+              <AlertCircle className="w-5 h-5 text-accent-foreground" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Pending Payment</p>
@@ -70,8 +70,8 @@ export default function AdminOverviewPage() {
         </div>
         <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-              <Clock className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center">
+              <Clock className="w-5 h-5 text-accent-foreground" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Under Review</p>
@@ -81,8 +81,8 @@ export default function AdminOverviewPage() {
         </div>
         <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <CheckCircle2 className="w-5 h-5 text-primary" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Completed Today</p>
@@ -106,8 +106,8 @@ export default function AdminOverviewPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
-              <Banknote className="w-5 h-5 text-emerald-600" />
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Banknote className="w-5 h-5 text-primary" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total SAR Volume</p>
@@ -119,8 +119,8 @@ export default function AdminOverviewPage() {
         </div>
         <div className="bg-card rounded-xl border border-border p-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-emerald-600" />
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-primary" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total NGN Volume</p>

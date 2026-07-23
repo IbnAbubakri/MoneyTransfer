@@ -22,43 +22,43 @@ import Link from "next/link";
 const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType; description: string }> = {
   waiting_for_payment: {
     label: "Awaiting Payment",
-    color: "text-amber-600 bg-amber-50 border-amber-200",
+    color: "text-accent-foreground bg-accent border-border",
     icon: Clock,
     description: "Please make your SAR payment and upload the receipt.",
   },
   payment_under_review: {
     label: "Payment Under Review",
-    color: "text-blue-600 bg-blue-50 border-blue-200",
+    color: "text-accent-foreground bg-accent border-border",
     icon: Clock,
     description: "We're verifying your payment. This usually takes 2-3 minutes.",
   },
   payment_confirmed: {
     label: "Payment Confirmed",
-    color: "text-emerald-600 bg-emerald-50 border-emerald-200",
+    color: "text-primary bg-primary/10 border-primary/20",
     icon: CheckCircle2,
     description: "Payment confirmed. Please provide your Nigerian bank details.",
   },
   awaiting_bank_details: {
     label: "Awaiting Bank Details",
-    color: "text-purple-600 bg-purple-50 border-purple-200",
+    color: "text-accent-foreground bg-accent border-border",
     icon: Clock,
     description: "Please provide your Nigerian bank account details.",
   },
   transfer_in_progress: {
     label: "Transfer In Progress",
-    color: "text-blue-600 bg-blue-50 border-blue-200",
+    color: "text-accent-foreground bg-accent border-border",
     icon: Clock,
     description: "Your Naira transfer is being processed.",
   },
   completed: {
     label: "Completed",
-    color: "text-emerald-600 bg-emerald-50 border-emerald-200",
+    color: "text-primary bg-primary/10 border-primary/20",
     icon: CheckCircle2,
     description: "Your exchange has been completed successfully!",
   },
   cancelled: {
     label: "Cancelled",
-    color: "text-muted-foreground bg-muted border-border",
+    color: "text-muted-foreground bg-accent border-border",
     icon: XCircle,
     description: "This transaction has been cancelled.",
   },
@@ -367,8 +367,8 @@ export default function TransactionDetailPage() {
       {txn.status === "payment_under_review" && (
         <div className="bg-card rounded-xl border border-border p-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
-              <Clock className="w-5 h-5 text-blue-600 animate-pulse" />
+            <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
+              <Clock className="w-5 h-5 text-accent-foreground animate-pulse" />
             </div>
             <div>
               <p className="font-medium text-foreground">Verification in Progress</p>

@@ -24,14 +24,14 @@ import {
 import Link from "next/link";
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-  waiting_for_payment: { label: "Awaiting Payment", color: "text-amber-600 bg-amber-50", icon: Clock },
-  payment_under_review: { label: "Under Review", color: "text-blue-600 bg-blue-50", icon: Clock },
-  payment_confirmed: { label: "Payment Confirmed", color: "text-emerald-600 bg-emerald-50", icon: CheckCircle2 },
-  awaiting_bank_details: { label: "Awaiting Bank Details", color: "text-purple-600 bg-purple-50", icon: Building2 },
-  transfer_in_progress: { label: "Transfer In Progress", color: "text-blue-600 bg-blue-50", icon: Send },
-  completed: { label: "Completed", color: "text-emerald-600 bg-emerald-50", icon: CheckCircle2 },
-  cancelled: { label: "Cancelled", color: "text-gray-600 bg-gray-100", icon: XCircle },
-  rejected: { label: "Rejected", color: "text-red-600 bg-red-50", icon: XCircle },
+  waiting_for_payment: { label: "Awaiting Payment", color: "text-accent-foreground bg-accent", icon: Clock },
+  payment_under_review: { label: "Under Review", color: "text-accent-foreground bg-accent", icon: Clock },
+  payment_confirmed: { label: "Payment Confirmed", color: "text-primary bg-primary/10", icon: CheckCircle2 },
+  awaiting_bank_details: { label: "Awaiting Bank Details", color: "text-accent-foreground bg-accent", icon: Building2 },
+  transfer_in_progress: { label: "Transfer In Progress", color: "text-accent-foreground bg-accent", icon: Send },
+  completed: { label: "Completed", color: "text-primary bg-primary/10", icon: CheckCircle2 },
+  cancelled: { label: "Cancelled", color: "text-muted-foreground bg-accent", icon: XCircle },
+  rejected: { label: "Rejected", color: "text-destructive bg-destructive/10", icon: XCircle },
 };
 
 export default function AdminTransactionDetailPage() {
@@ -115,7 +115,7 @@ export default function AdminTransactionDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -123,21 +123,21 @@ export default function AdminTransactionDetailPage() {
   if (!txn) {
     return (
       <div className="text-center py-20">
-        <p className="text-gray-500">Transaction not found</p>
-        <Link href="/admin/transactions" className="text-indigo-600 hover:underline mt-2 inline-block">
+        <p className="text-muted-foreground">Transaction not found</p>
+        <Link href="/admin/transactions" className="text-primary hover:underline mt-2 inline-block">
           Back to transactions
         </Link>
       </div>
     );
   }
 
-  const sc = statusConfig[txn.status] || { label: txn.status, color: "text-gray-600 bg-gray-50", icon: Clock };
+  const sc = statusConfig[txn.status] || { label: txn.status, color: "text-muted-foreground bg-accent", icon: Clock };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <Link
         href="/admin/transactions"
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Transactions
@@ -145,8 +145,8 @@ export default function AdminTransactionDetailPage() {
 
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{txn.reference}</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-card-foreground">{txn.reference}</h1>
+          <p className="text-muted-foreground mt-1">
             Created {new Date(txn.created_at).toLocaleString()}
           </p>
         </div>
@@ -158,37 +158,37 @@ export default function AdminTransactionDetailPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Transaction Details</h3>
+          <div className="bg-card rounded-xl border border-border p-6 space-y-4">
+            <h3 className="text-lg font-semibold text-card-foreground">Transaction Details</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-gray-500">Customer</p>
-                <p className="font-medium text-gray-900">{txn.profiles?.full_name}</p>
-                <p className="text-xs text-gray-500">{txn.profiles?.email}</p>
+                <p className="text-sm text-muted-foreground">Customer</p>
+                <p className="font-medium text-card-foreground">{txn.profiles?.full_name}</p>
+                <p className="text-xs text-muted-foreground">{txn.profiles?.email}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Exchange Rate</p>
-                <p className="font-medium text-gray-900">₦{txn.exchange_rate}/SAR</p>
+                <p className="text-sm text-muted-foreground">Exchange Rate</p>
+                <p className="font-medium text-card-foreground">₦{txn.exchange_rate}/SAR</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">SAR Amount</p>
-                <p className="text-xl font-bold text-gray-900">{txn.sar_amount.toLocaleString()} SAR</p>
+                <p className="text-sm text-muted-foreground">SAR Amount</p>
+                <p className="text-xl font-bold text-card-foreground">{txn.sar_amount.toLocaleString()} SAR</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">NGN Amount</p>
-                <p className="text-xl font-bold text-indigo-600">₦{txn.ngn_amount.toLocaleString()}</p>
+                <p className="text-sm text-muted-foreground">NGN Amount</p>
+                <p className="text-xl font-bold text-primary">₦{txn.ngn_amount.toLocaleString()}</p>
               </div>
             </div>
           </div>
 
           {txn.payment_receipt_url && (
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Payment Receipt</h3>
+            <div className="bg-card rounded-xl border border-border p-6">
+              <h3 className="text-lg font-semibold text-card-foreground mb-3">Payment Receipt</h3>
               <a
                 href={txn.payment_receipt_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm text-indigo-600 hover:underline"
+                className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
               >
                 <FileImage className="w-4 h-4" />
                 View uploaded receipt
@@ -197,25 +197,25 @@ export default function AdminTransactionDetailPage() {
           )}
 
           {txn.bank_name && (
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Bank Details</h3>
+            <div className="bg-card rounded-xl border border-border p-6">
+              <h3 className="text-lg font-semibold text-card-foreground mb-3">Bank Details</h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-gray-500">Bank</p>
-                  <p className="font-medium text-gray-900">{txn.bank_name}</p>
+                  <p className="text-muted-foreground">Bank</p>
+                  <p className="font-medium text-card-foreground">{txn.bank_name}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Account Number</p>
-                  <p className="font-mono font-medium text-gray-900">{txn.bank_account_number}</p>
+                  <p className="text-muted-foreground">Account Number</p>
+                  <p className="font-mono font-medium text-card-foreground">{txn.bank_account_number}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Account Name</p>
-                  <p className="font-medium text-gray-900">{txn.bank_account_name}</p>
+                  <p className="text-muted-foreground">Account Name</p>
+                  <p className="font-medium text-card-foreground">{txn.bank_account_name}</p>
                 </div>
                 {txn.transfer_reference && (
                   <div>
-                    <p className="text-gray-500">Transfer Reference</p>
-                    <p className="font-mono font-medium text-gray-900">{txn.transfer_reference}</p>
+                    <p className="text-muted-foreground">Transfer Reference</p>
+                    <p className="font-mono font-medium text-card-foreground">{txn.transfer_reference}</p>
                   </div>
                 )}
               </div>
@@ -223,9 +223,9 @@ export default function AdminTransactionDetailPage() {
           )}
 
           {txn.transaction_history && txn.transaction_history.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <History className="w-5 h-5 text-gray-400" />
+            <div className="bg-card rounded-xl border border-border p-6">
+              <h3 className="text-lg font-semibold text-card-foreground mb-4 flex items-center gap-2">
+                <History className="w-5 h-5 text-muted-foreground/60" />
                 Status History
               </h3>
               <div className="space-y-3">
@@ -233,14 +233,14 @@ export default function AdminTransactionDetailPage() {
                   .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
                   .map((h) => (
                     <div key={h.id} className="flex items-start gap-3 text-sm">
-                      <div className="w-2 h-2 rounded-full bg-indigo-400 mt-2 flex-shrink-0" />
+                      <div className="w-2 h-2 rounded-full bg-primary/60 mt-2 flex-shrink-0" />
                       <div>
-                        <p className="text-gray-900">
+                        <p className="text-card-foreground">
                           {h.old_status ? `${h.old_status.replace(/_/g, " ")}` : "Created"} →{" "}
                           <span className="font-medium">{h.new_status.replace(/_/g, " ")}</span>
                         </p>
-                        {h.notes && <p className="text-gray-500 text-xs mt-0.5">{h.notes}</p>}
-                        <p className="text-gray-400 text-xs">
+                        {h.notes && <p className="text-muted-foreground text-xs mt-0.5">{h.notes}</p>}
+                        <p className="text-muted-foreground/60 text-xs">
                           {new Date(h.created_at).toLocaleString()}
                         </p>
                       </div>
@@ -252,22 +252,22 @@ export default function AdminTransactionDetailPage() {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Actions</h3>
+          <div className="bg-card rounded-xl border border-border p-6 space-y-4">
+            <h3 className="text-lg font-semibold text-card-foreground">Actions</h3>
 
             {txn.status === "waiting_for_payment" && (
-              <p className="text-sm text-gray-500">Waiting for customer to upload payment receipt.</p>
+              <p className="text-sm text-muted-foreground">Waiting for customer to upload payment receipt.</p>
             )}
 
             {txn.status === "payment_under_review" && (
               <div className="space-y-3">
-                <p className="text-sm text-gray-500">Customer has uploaded a payment receipt.</p>
+                <p className="text-sm text-muted-foreground">Customer has uploaded a payment receipt.</p>
                 <button
                   onClick={() =>
                     handleStatusUpdate("payment_confirmed", undefined, "Payment verified by admin")
                   }
                   disabled={actionLoading}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   {actionLoading ? "Processing..." : "Confirm Payment"}
@@ -277,7 +277,7 @@ export default function AdminTransactionDetailPage() {
                     handleStatusUpdate("rejected", undefined, "Payment not verified")
                   }
                   disabled={actionLoading}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 text-red-700 font-medium rounded-lg hover:bg-red-100 disabled:opacity-50 transition-colors border border-red-200"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-destructive/10 text-destructive font-medium rounded-lg hover:bg-destructive/20 disabled:opacity-50 transition-colors border border-destructive/20"
                 >
                   <XCircle className="w-4 h-4" />
                   Reject Payment
@@ -286,31 +286,31 @@ export default function AdminTransactionDetailPage() {
             )}
 
             {txn.status === "payment_confirmed" && (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Payment confirmed. Waiting for customer to provide bank details.
               </p>
             )}
 
             {txn.status === "awaiting_bank_details" && (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Customer has provided bank details. Ready to process transfer.
               </p>
             )}
 
             {txn.status === "transfer_in_progress" && (
               <div className="space-y-3">
-                <p className="text-sm text-gray-500">Enter the transfer reference to complete.</p>
+                <p className="text-sm text-muted-foreground">Enter the transfer reference to complete.</p>
                 <input
                   type="text"
                   value={transferRef}
                   onChange={(e) => setTransferRef(e.target.value)}
                   placeholder="Transfer reference number"
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                  className="w-full px-3 py-2.5 border border-input rounded-lg text-sm focus:ring-2 focus:ring-ring focus:border-ring outline-none"
                 />
                 <button
                   onClick={handleMarkCompleted}
                   disabled={!transferRef.trim() || actionLoading}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   {actionLoading ? "Processing..." : "Mark Completed"}
@@ -320,33 +320,33 @@ export default function AdminTransactionDetailPage() {
 
             {txn.status === "completed" && (
               <div className="text-center py-4">
-                <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-2" />
-                <p className="text-sm font-medium text-emerald-700">Completed</p>
+                <CheckCircle2 className="w-12 h-12 text-primary mx-auto mb-2" />
+                <p className="text-sm font-medium text-primary">Completed</p>
               </div>
             )}
 
             {(txn.status === "cancelled" || txn.status === "rejected") && (
               <div className="text-center py-4">
-                <XCircle className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm font-medium text-gray-700 capitalize">{txn.status}</p>
+                <XCircle className="w-12 h-12 text-muted-foreground/60 mx-auto mb-2" />
+                <p className="text-sm font-medium text-foreground/80 capitalize">{txn.status}</p>
               </div>
             )}
 
             {!["completed", "cancelled", "rejected"].includes(txn.status) && (
-              <div className="pt-3 border-t border-gray-100 space-y-2">
+              <div className="pt-3 border-t border-border space-y-2">
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Add a note (optional)"
                   rows={2}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none"
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-ring focus:border-ring outline-none resize-none"
                 />
                 <button
                   onClick={() =>
                     handleStatusUpdate("cancelled", undefined, notes || "Cancelled by admin")
                   }
                   disabled={actionLoading}
-                  className="w-full px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 transition-colors"
+                  className="w-full px-4 py-2 text-sm font-medium text-muted-foreground bg-accent rounded-lg hover:bg-accent/80 disabled:opacity-50 transition-colors"
                 >
                   Cancel Transaction
                 </button>
