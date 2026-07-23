@@ -47,37 +47,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    let mounted = true;
+
     const getUser = async () => {
-      const { data: { user } } = await supabaseRef.current.auth.getUser();
-      setUser(user);
+      try {
+        const { data: { user } } = await supabaseRef.current.auth.getUser();
+        if (!mounted) return;
+        setUser(user);
 
-      if (user) {
-        const profileData = await fetchProfile(user.id);
-        setProfile(profileData);
+        if (user) {
+          const profileData = await fetchProfile(user.id);
+          if (mounted) setProfile(profileData);
+        }
+      } catch (err) {
+        console.error("Auth init error:", err);
+      } finally {
+        if (mounted) setLoading(false);
       }
-
-      setLoading(false);
     };
 
     getUser();
 
     const { data: { subscription } } = supabaseRef.current.auth.onAuthStateChange(
       async (_event, session) => {
-        const currentUser = session?.user ?? null;
-        setUser(currentUser);
+        try {
+          const currentUser = session?.user ?? null;
+          if (!mounted) return;
+          setUser(currentUser);
 
-        if (currentUser) {
-          const profileData = await fetchProfile(currentUser.id);
-          setProfile(profileData);
-        } else {
-          setProfile(null);
+          if (currentUser) {
+            const profileData = await fetchProfile(currentUser.id);
+            if (mounted) setProfile(profileData);
+          } else {
+            setProfile(null);
+          }
+        } catch (err) {
+          console.error("Auth state change error:", err);
+        } finally {
+          if (mounted) setLoading(false);
         }
-
-        setLoading(false);
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const refreshProfile = async () => {
@@ -104,7 +119,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabaseRef.current.auth.signOut();
+    try {
+      await supabaseRef.current.auth.signOut();
+    } catch (err) {
+      console.error("Sign out error:", err);
+    }
     setProfile(null);
   };
 

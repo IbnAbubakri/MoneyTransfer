@@ -1,7 +1,7 @@
 import { Clock, CheckCircle2, XCircle, Building2, Send } from "lucide-react";
 import { TransactionStatus } from "./types";
 
-export const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType }> = {
+export const STATUS_CONFIG: Record<TransactionStatus, { label: string; color: string; icon: React.ElementType }> = {
   waiting_for_payment: { label: "Awaiting Payment", color: "text-accent-foreground bg-accent", icon: Clock },
   payment_under_review: { label: "Under Review", color: "text-accent-foreground bg-accent", icon: Clock },
   payment_confirmed: { label: "Payment Confirmed", color: "text-primary bg-primary/10", icon: CheckCircle2 },
@@ -23,15 +23,16 @@ export const STATUS_DESCRIPTIONS: Partial<Record<string, string>> = {
   rejected: "This transaction was rejected. Please contact support.",
 };
 
-export function getStatusConfig(status: string) {
-  return STATUS_CONFIG[status] || { label: status, color: "text-muted-foreground bg-accent", icon: Clock };
+export function getStatusConfig(status: TransactionStatus | string) {
+  const key = status as TransactionStatus;
+  return STATUS_CONFIG[key] || { label: status, color: "text-muted-foreground bg-accent", icon: Clock };
 }
 
-export function getStatusDescription(status: string) {
+export function getStatusDescription(status: TransactionStatus | string) {
   return STATUS_DESCRIPTIONS[status] || "";
 }
 
-export const VALID_TRANSITIONS: Record<string, string[]> = {
+export const VALID_TRANSITIONS: Record<TransactionStatus, TransactionStatus[]> = {
   waiting_for_payment: ["payment_under_review", "cancelled"],
   payment_under_review: ["payment_confirmed", "rejected", "cancelled"],
   payment_confirmed: ["awaiting_bank_details", "cancelled"],

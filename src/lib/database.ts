@@ -68,12 +68,17 @@ export async function updateExchangeRate(
   adminId: string
 ): Promise<boolean> {
   // Deactivate current rate
-  await supabase
+  const { error: deactivateError } = await supabase
     .from("exchange_rates")
     .update({ is_active: false })
     .eq("is_active", true)
     .eq("from_currency", "SAR")
     .eq("to_currency", "NGN");
+
+  if (deactivateError) {
+    console.error("Error deactivating current rate:", deactivateError);
+    return false;
+  }
 
   // Insert new rate
   const { error } = await supabase.from("exchange_rates").insert({
@@ -109,7 +114,7 @@ export async function createTransaction(
   sarAmount: number,
   exchangeRate: number
 ): Promise<Transaction | null> {
-  const reference = await generateTransactionReference();
+  const reference = generateTransactionReference();
   const ngnAmount = sarAmount * exchangeRate;
 
   const { data, error } = await supabase

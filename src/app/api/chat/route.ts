@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { VALID_TRANSITIONS } from "@/lib/status-config";
+import { TransactionStatus } from "@/lib/types";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
@@ -160,7 +161,7 @@ async function executeTool(
         return { success: false, error: `Cannot submit receipt for transaction with status: ${txn.status}` };
       }
 
-      if (!VALID_TRANSITIONS[txn.status]?.includes("payment_under_review")) {
+      if (!VALID_TRANSITIONS[txn.status as TransactionStatus]?.includes("payment_under_review" as TransactionStatus)) {
         return { success: false, error: "Invalid status transition" };
       }
 
@@ -218,7 +219,7 @@ async function executeTool(
         return { success: false, error: `Cannot submit bank details for transaction with status: ${txn.status}` };
       }
 
-      if (!VALID_TRANSITIONS[txn.status]?.includes("awaiting_bank_details")) {
+      if (!VALID_TRANSITIONS[txn.status as TransactionStatus]?.includes("awaiting_bank_details" as TransactionStatus)) {
         return { success: false, error: "Invalid status transition" };
       }
 
