@@ -426,7 +426,7 @@ ${kbText || "No knowledge base entries available."}
       throw new Error("Max retries exceeded");
     }
 
-    let conversationContents: { role: string; parts: Record<string, unknown>[] }[] = geminiMessages.map((m) => ({
+    let conversationContents: { role: string; parts: Record<string, unknown>[] }[] = geminiMessages.map((m: { role: string; parts: { text: string }[] }) => ({
       role: m.role,
       parts: m.parts,
     }));
