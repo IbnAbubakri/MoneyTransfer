@@ -24,7 +24,9 @@ export default function AdminCustomersPage() {
     return () => { cancelled = true; };
   }, []);
 
-  const handleToggle = async (customerId: string, currentStatus: boolean) => {
+  const handleToggle = async (customerId: string, currentStatus: boolean, name: string) => {
+    const action = currentStatus ? "deactivate" : "activate";
+    if (!window.confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} ${name}?${currentStatus ? " This will block all their transactions." : ""}`)) return;
     setTogglingId(customerId);
     await updateCustomerStatus(customerId, !currentStatus);
     setCustomers((prev) =>
@@ -137,8 +139,9 @@ export default function AdminCustomersPage() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button
-                        onClick={() => handleToggle(customer.id, customer.is_active)}
+                        onClick={() => handleToggle(customer.id, customer.is_active, customer.full_name)}
                         disabled={togglingId === customer.id}
+                        aria-label={customer.is_active ? `Deactivate ${customer.full_name}` : `Activate ${customer.full_name}`}
                         className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                           customer.is_active
                             ? "text-destructive bg-destructive/10 hover:bg-destructive/20"

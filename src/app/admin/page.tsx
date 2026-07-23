@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getAdminDashboardStats, getAllTransactions } from "@/lib/database";
 import { TransactionWithCustomer } from "@/lib/types";
+import { getStatusConfig } from "@/lib/status-config";
 import {
   Clock,
   CheckCircle2,
@@ -14,17 +15,6 @@ import {
   ArrowUpRight,
   AlertCircle,
 } from "lucide-react";
-
-const statusConfig: Record<string, { label: string; color: string }> = {
-  waiting_for_payment: { label: "Awaiting Payment", color: "text-accent-foreground bg-accent" },
-  payment_under_review: { label: "Reviewing", color: "text-accent-foreground bg-accent" },
-  payment_confirmed: { label: "Confirmed", color: "text-primary bg-primary/10" },
-  awaiting_bank_details: { label: "Awaiting Bank", color: "text-accent-foreground bg-accent" },
-  transfer_in_progress: { label: "In Progress", color: "text-accent-foreground bg-accent" },
-  completed: { label: "Completed", color: "text-primary bg-primary/10" },
-  cancelled: { label: "Cancelled", color: "text-muted-foreground bg-accent" },
-  rejected: { label: "Rejected", color: "text-destructive bg-destructive/10" },
-};
 
 export default function AdminOverviewPage() {
   const [stats, setStats] = useState<Awaited<ReturnType<typeof getAdminDashboardStats>> | null>(null);
@@ -174,7 +164,7 @@ export default function AdminOverviewPage() {
               </thead>
               <tbody className="divide-y divide-border/50">
                 {recentTxns.map((txn) => {
-                  const sc = statusConfig[txn.status] || { label: txn.status, color: "text-muted-foreground bg-muted" };
+                  const sc = getStatusConfig(txn.status);
                   return (
                     <tr key={txn.id} className="hover:bg-muted/50 transition-colors">
                       <td className="px-4 py-3">

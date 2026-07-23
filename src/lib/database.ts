@@ -11,6 +11,7 @@ import {
   TransactionStatus,
   AuditLog,
 } from "./types";
+import { isValidTransition as _isValidTransition } from "./status-config";
 
 const supabase = createSupabaseBrowser();
 
@@ -37,23 +38,8 @@ export async function isAdmin(userId: string): Promise<boolean> {
   return profile?.role === "admin";
 }
 
-// =====================================================
-// STATUS TRANSITION VALIDATION
-// =====================================================
-const VALID_TRANSITIONS: Record<string, string[]> = {
-  waiting_for_payment: ["payment_under_review", "cancelled"],
-  payment_under_review: ["payment_confirmed", "rejected", "cancelled"],
-  payment_confirmed: ["awaiting_bank_details", "cancelled"],
-  awaiting_bank_details: ["transfer_in_progress", "cancelled"],
-  transfer_in_progress: ["completed", "cancelled"],
-  completed: [],
-  cancelled: [],
-  rejected: [],
-};
-
-export function isValidTransition(from: string, to: string): boolean {
-  return VALID_TRANSITIONS[from]?.includes(to) ?? false;
-}
+// Re-export from shared module
+export const isValidTransition = _isValidTransition;
 
 // =====================================================
 // EXCHANGE RATE FUNCTIONS
@@ -109,7 +95,7 @@ export async function updateExchangeRate(
 // =====================================================
 // TRANSACTION FUNCTIONS
 // =====================================================
-export async function generateTransactionReference(): Promise<string> {
+export function generateTransactionReference(): string {
   const now = new Date();
   const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "");
   const random = Math.floor(Math.random() * 10000)

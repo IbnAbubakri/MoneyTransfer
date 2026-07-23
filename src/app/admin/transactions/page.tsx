@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getAllTransactions, getTransactionsByStatus } from "@/lib/database";
 import { TransactionWithCustomer, TransactionStatus } from "@/lib/types";
+import { getStatusConfig } from "@/lib/status-config";
 import { ArrowUpRight, Filter } from "lucide-react";
 
 const statusFilters: { value: string; label: string; status?: TransactionStatus }[] = [
@@ -15,17 +16,6 @@ const statusFilters: { value: string; label: string; status?: TransactionStatus 
   { value: "completed", label: "Completed", status: "completed" },
   { value: "cancelled", label: "Cancelled", status: "cancelled" },
 ];
-
-const statusConfig: Record<string, { label: string; color: string }> = {
-  waiting_for_payment: { label: "Awaiting Payment", color: "text-accent-foreground bg-accent" },
-  payment_under_review: { label: "Reviewing", color: "text-accent-foreground bg-accent" },
-  payment_confirmed: { label: "Confirmed", color: "text-primary bg-primary/10" },
-  awaiting_bank_details: { label: "Awaiting Bank", color: "text-accent-foreground bg-accent" },
-  transfer_in_progress: { label: "In Progress", color: "text-accent-foreground bg-accent" },
-  completed: { label: "Completed", color: "text-primary bg-primary/10" },
-  cancelled: { label: "Cancelled", color: "text-muted-foreground bg-accent" },
-  rejected: { label: "Rejected", color: "text-destructive bg-destructive/10" },
-};
 
 export default function AdminTransactionsPage() {
   const [transactions, setTransactions] = useState<TransactionWithCustomer[]>([]);
@@ -99,7 +89,7 @@ export default function AdminTransactionsPage() {
               </thead>
               <tbody className="divide-y divide-border/50">
                 {transactions.map((txn) => {
-                  const sc = statusConfig[txn.status] || { label: txn.status, color: "text-muted-foreground bg-muted" };
+                  const sc = getStatusConfig(txn.status);
                   return (
                     <tr key={txn.id} className="hover:bg-muted/50 transition-colors">
                       <td className="px-4 py-3">

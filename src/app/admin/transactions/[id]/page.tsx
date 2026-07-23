@@ -10,29 +10,18 @@ import {
   createNotification,
   createAuditLog,
 } from "@/lib/database";
+import { getStatusConfig } from "@/lib/status-config";
 import { TransactionWithHistory } from "@/lib/types";
 import {
   ArrowLeft,
   CheckCircle2,
   XCircle,
-  Clock,
   Building2,
   FileImage,
   Send,
   History,
 } from "lucide-react";
 import Link from "next/link";
-
-const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-  waiting_for_payment: { label: "Awaiting Payment", color: "text-accent-foreground bg-accent", icon: Clock },
-  payment_under_review: { label: "Under Review", color: "text-accent-foreground bg-accent", icon: Clock },
-  payment_confirmed: { label: "Payment Confirmed", color: "text-primary bg-primary/10", icon: CheckCircle2 },
-  awaiting_bank_details: { label: "Awaiting Bank Details", color: "text-accent-foreground bg-accent", icon: Building2 },
-  transfer_in_progress: { label: "Transfer In Progress", color: "text-accent-foreground bg-accent", icon: Send },
-  completed: { label: "Completed", color: "text-primary bg-primary/10", icon: CheckCircle2 },
-  cancelled: { label: "Cancelled", color: "text-muted-foreground bg-accent", icon: XCircle },
-  rejected: { label: "Rejected", color: "text-destructive bg-destructive/10", icon: XCircle },
-};
 
 export default function AdminTransactionDetailPage() {
   const params = useParams();
@@ -131,7 +120,7 @@ export default function AdminTransactionDetailPage() {
     );
   }
 
-  const sc = statusConfig[txn.status] || { label: txn.status, color: "text-muted-foreground bg-accent", icon: Clock };
+  const sc = getStatusConfig(txn.status);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -263,9 +252,10 @@ export default function AdminTransactionDetailPage() {
               <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">Customer has uploaded a payment receipt.</p>
                 <button
-                  onClick={() =>
-                    handleStatusUpdate("payment_confirmed", undefined, "Payment verified by admin")
-                  }
+                  onClick={() => {
+                    if (!window.confirm("Confirm this payment? This cannot be undone.")) return;
+                    handleStatusUpdate("payment_confirmed", undefined, "Payment verified by admin");
+                  }}
                   disabled={actionLoading}
                   className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
                 >
@@ -273,9 +263,10 @@ export default function AdminTransactionDetailPage() {
                   {actionLoading ? "Processing..." : "Confirm Payment"}
                 </button>
                 <button
-                  onClick={() =>
-                    handleStatusUpdate("rejected", undefined, "Payment not verified")
-                  }
+                  onClick={() => {
+                    if (!window.confirm("Reject this payment? This cannot be undone.")) return;
+                    handleStatusUpdate("rejected", undefined, "Payment not verified");
+                  }}
                   disabled={actionLoading}
                   className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-destructive/10 text-destructive font-medium rounded-lg hover:bg-destructive/20 disabled:opacity-50 transition-colors border border-destructive/20"
                 >
@@ -344,9 +335,10 @@ export default function AdminTransactionDetailPage() {
                   className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:ring-2 focus:ring-ring focus:border-ring outline-none resize-none"
                 />
                 <button
-                  onClick={() =>
-                    handleStatusUpdate("cancelled", undefined, notes || "Cancelled by admin")
-                  }
+                  onClick={() => {
+                    if (!window.confirm("Cancel this transaction? This cannot be undone.")) return;
+                    handleStatusUpdate("cancelled", undefined, notes || "Cancelled by admin");
+                  }}
                   disabled={actionLoading}
                   className="w-full px-4 py-2 text-sm font-medium text-muted-foreground bg-accent rounded-lg hover:bg-accent/80 disabled:opacity-50 transition-colors"
                 >

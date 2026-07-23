@@ -27,6 +27,7 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [pendingImage, setPendingImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageError, setImageError] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -44,10 +45,11 @@ export default function ChatPage() {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
-        alert("File is too large. Maximum size is 10MB.");
+        setImageError("File is too large. Maximum size is 10MB.");
         if (fileInputRef.current) fileInputRef.current.value = "";
         return;
       }
+      setImageError("");
       setPendingImage(file);
       setImagePreview(URL.createObjectURL(file));
     }
@@ -57,6 +59,7 @@ export default function ChatPage() {
     if (imagePreview) URL.revokeObjectURL(imagePreview);
     setPendingImage(null);
     setImagePreview(null);
+    setImageError("");
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -255,6 +258,12 @@ export default function ChatPage() {
                 </button>
               ))}
             </div>
+          </div>
+        )}
+
+        {imageError && (
+          <div className="px-4 pb-2">
+            <p className="text-sm text-destructive">{imageError}</p>
           </div>
         )}
 

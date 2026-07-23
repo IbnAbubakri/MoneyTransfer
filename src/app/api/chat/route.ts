@@ -1,18 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { VALID_TRANSITIONS } from "@/lib/status-config";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-const VALID_TRANSITIONS: Record<string, string[]> = {
-  waiting_for_payment: ["payment_under_review", "cancelled"],
-  payment_under_review: ["payment_confirmed", "rejected", "cancelled"],
-  payment_confirmed: ["awaiting_bank_details", "cancelled"],
-  awaiting_bank_details: ["transfer_in_progress", "cancelled"],
-  transfer_in_progress: ["completed", "cancelled"],
-  completed: [],
-  cancelled: [],
-  rejected: [],
-};
 
 interface ChatMessage {
   role: "user" | "assistant";

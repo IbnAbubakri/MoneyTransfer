@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { createSupabaseBrowser } from "@/lib/supabase";
+import { isValidTransition } from "@/lib/status-config";
 import { Transaction } from "@/lib/types";
 import {
   ArrowLeftRight,
@@ -18,57 +19,7 @@ import {
   Check,
 } from "lucide-react";
 import Link from "next/link";
-
-const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType; description: string }> = {
-  waiting_for_payment: {
-    label: "Awaiting Payment",
-    color: "text-accent-foreground bg-accent border-border",
-    icon: Clock,
-    description: "Please make your SAR payment and upload the receipt.",
-  },
-  payment_under_review: {
-    label: "Payment Under Review",
-    color: "text-accent-foreground bg-accent border-border",
-    icon: Clock,
-    description: "We're verifying your payment. This usually takes 2-3 minutes.",
-  },
-  payment_confirmed: {
-    label: "Payment Confirmed",
-    color: "text-primary bg-primary/10 border-primary/20",
-    icon: CheckCircle2,
-    description: "Payment confirmed. Please provide your Nigerian bank details.",
-  },
-  awaiting_bank_details: {
-    label: "Awaiting Bank Details",
-    color: "text-accent-foreground bg-accent border-border",
-    icon: Clock,
-    description: "Please provide your Nigerian bank account details.",
-  },
-  transfer_in_progress: {
-    label: "Transfer In Progress",
-    color: "text-accent-foreground bg-accent border-border",
-    icon: Clock,
-    description: "Your Naira transfer is being processed.",
-  },
-  completed: {
-    label: "Completed",
-    color: "text-primary bg-primary/10 border-primary/20",
-    icon: CheckCircle2,
-    description: "Your exchange has been completed successfully!",
-  },
-  cancelled: {
-    label: "Cancelled",
-    color: "text-muted-foreground bg-accent border-border",
-    icon: XCircle,
-    description: "This transaction has been cancelled.",
-  },
-  rejected: {
-    label: "Rejected",
-    color: "text-destructive bg-destructive/10 border-destructive/20",
-    icon: XCircle,
-    description: "This transaction was rejected. Please contact support.",
-  },
-};
+import { getStatusConfig, getStatusDescription } from "@/lib/status-config";
 
 const bankOptions = [
   "Access Bank",
@@ -104,7 +55,8 @@ export default function TransactionDetailPage() {
   const [txn, setTxn] = useState<Transaction | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copiedRef, setCopiedRef] = useState(false);
+  const [copiedAcct, setCopiedAcct] = useState(false);
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [accountName, setAccountName] = useState("");
@@ -141,6 +93,12 @@ export default function TransactionDetailPage() {
     }
     setReceiptError("");
 
+    if (!isValidTransition(txn.status, "payment_under_review")) {
+      setReceiptError("This transaction can no longer accept receipt uploads.");
+      setUploading(false);
+      return;
+    }
+
     setUploading(true);
     const filePath = `${profile.id}/${txn.reference}/receipt-${Date.now()}.${file.name.split(".").pop()}`;
 
@@ -164,7 +122,8 @@ export default function TransactionDetailPage() {
         payment_receipt_url: urlData.publicUrl,
         status: "payment_under_review",
       })
-      .eq("id", txn.id);
+      .eq("id", txn.id)
+      .eq("status", txn.status);
 
     const refetch = async () => {
       if (!params.id) return;
@@ -178,7 +137,7 @@ export default function TransactionDetailPage() {
 
     await supabase.from("transaction_history").insert({
       transaction_id: txn.id,
-      old_status: "waiting_for_payment",
+      old_status: txn.status,
       new_status: "payment_under_review",
       changed_by: profile.id,
       notes: "Payment receipt uploaded",
@@ -190,6 +149,7 @@ export default function TransactionDetailPage() {
 
   const handleBankDetails = async () => {
     if (!txn || !profile || !bankName || !accountNumber || !accountName) return;
+    if (!isValidTransition(txn.status, "awaiting_bank_details")) return;
     setSubmittingBank(true);
 
     await supabase
@@ -200,11 +160,12 @@ export default function TransactionDetailPage() {
         bank_account_name: accountName,
         status: "awaiting_bank_details",
       })
-      .eq("id", txn.id);
+      .eq("id", txn.id)
+      .eq("status", txn.status);
 
     await supabase.from("transaction_history").insert({
       transaction_id: txn.id,
-      old_status: "payment_confirmed",
+      old_status: txn.status,
       new_status: "awaiting_bank_details",
       changed_by: profile.id,
       notes: "Bank details submitted",
@@ -219,10 +180,15 @@ export default function TransactionDetailPage() {
     setSubmittingBank(false);
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const copyToClipboard = async (text: string, which: "ref" | "acct") => {
+    await navigator.clipboard.writeText(text);
+    if (which === "ref") {
+      setCopiedRef(true);
+      setTimeout(() => setCopiedRef(false), 2000);
+    } else {
+      setCopiedAcct(true);
+      setTimeout(() => setCopiedAcct(false), 2000);
+    }
   };
 
   if (loading) {
@@ -244,7 +210,8 @@ export default function TransactionDetailPage() {
     );
   }
 
-  const sc = statusConfig[txn.status] || statusConfig.waiting_for_payment;
+  const sc = getStatusConfig(txn.status);
+  const scDescription = getStatusDescription(txn.status);
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -263,7 +230,7 @@ export default function TransactionDetailPage() {
           <sc.icon className="w-6 h-6" />
           <div>
             <h2 className="text-lg font-semibold">{sc.label}</h2>
-            <p className="text-sm opacity-80">{sc.description}</p>
+            <p className="text-sm opacity-80">{scDescription}</p>
           </div>
         </div>
       </div>
@@ -276,11 +243,11 @@ export default function TransactionDetailPage() {
             <div className="flex items-center gap-2">
               <p className="font-mono font-medium text-foreground">{txn.reference}</p>
               <button
-                onClick={() => copyToClipboard(txn.reference)}
+                onClick={() => copyToClipboard(txn.reference, "ref")}
                 className="p-1 rounded hover:bg-muted"
                 aria-label="Copy reference"
               >
-                {copied ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
+                {copiedRef ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4 text-muted-foreground" />}
               </button>
             </div>
           </div>
@@ -327,8 +294,8 @@ export default function TransactionDetailPage() {
               <p className="text-xs text-muted-foreground">Account Number</p>
               <div className="flex items-center gap-2">
                 <p className="font-mono font-medium text-foreground">SA03 8000 0000 6080 1016 7519</p>
-                <button onClick={() => copyToClipboard("SA0380000000608010167519")} className="p-1 rounded hover:bg-muted" aria-label="Copy account number">
-                  {copied ? <Check className="w-3 h-3 text-primary" /> : <Copy className="w-3 h-3 text-muted-foreground" />}
+                <button onClick={() => copyToClipboard("SA0380000000608010167519", "acct")} className="p-1 rounded hover:bg-muted" aria-label="Copy account number">
+                  {copiedAcct ? <Check className="w-3 h-3 text-primary" /> : <Copy className="w-3 h-3 text-muted-foreground" />}
                 </button>
               </div>
             </div>
@@ -416,8 +383,9 @@ export default function TransactionDetailPage() {
           </p>
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Bank Name</label>
+              <label htmlFor="bank-select" className="block text-sm font-medium text-foreground mb-1">Bank Name</label>
               <select
+                id="bank-select"
                 value={bankName}
                 onChange={(e) => setBankName(e.target.value)}
                 className="w-full px-3 py-2.5 border border-border rounded-lg focus:ring-2 focus:ring-ring focus:border-ring outline-none text-sm bg-card text-foreground"

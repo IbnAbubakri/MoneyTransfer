@@ -5,21 +5,8 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { getCustomerTransactions, getActiveExchangeRate } from "@/lib/database";
 import { Transaction, ExchangeRate } from "@/lib/types";
-import { ArrowLeftRight, Clock, CheckCircle2, XCircle, TrendingUp, ArrowUpRight } from "lucide-react";
-
-function statusConfig(status: string) {
-  const map: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-    waiting_for_payment: { label: "Awaiting Payment", color: "text-accent-foreground bg-accent", icon: Clock },
-    payment_under_review: { label: "Reviewing", color: "text-accent-foreground bg-accent", icon: Clock },
-    payment_confirmed: { label: "Confirmed", color: "text-primary bg-primary/10", icon: CheckCircle2 },
-    awaiting_bank_details: { label: "Bank Details Needed", color: "text-accent-foreground bg-accent", icon: Clock },
-    transfer_in_progress: { label: "Transfer In Progress", color: "text-accent-foreground bg-accent", icon: Clock },
-    completed: { label: "Completed", color: "text-primary bg-primary/10", icon: CheckCircle2 },
-    cancelled: { label: "Cancelled", color: "text-muted-foreground bg-accent", icon: XCircle },
-    rejected: { label: "Rejected", color: "text-destructive bg-destructive/10", icon: XCircle },
-  };
-  return map[status] || { label: status, color: "text-muted-foreground bg-accent", icon: Clock };
-}
+import { getStatusConfig } from "@/lib/status-config";
+import { ArrowLeftRight, TrendingUp, ArrowUpRight, Clock, CheckCircle2 } from "lucide-react";
 
 export default function DashboardPage() {
   const { profile } = useAuth();
@@ -130,7 +117,7 @@ export default function DashboardPage() {
         <div className="bg-card rounded-xl border border-border overflow-hidden">
           <div className="divide-y divide-border">
             {transactions.slice(0, 5).map((txn) => {
-              const sc = statusConfig(txn.status);
+              const sc = getStatusConfig(txn.status);
               return (
                 <Link
                   key={txn.id}

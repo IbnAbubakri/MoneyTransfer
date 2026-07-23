@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { getCustomerTransactions } from "@/lib/database";
 import { Transaction } from "@/lib/types";
-import { ArrowLeftRight, ArrowUpRight, Clock, CheckCircle2, XCircle, Filter } from "lucide-react";
+import { getStatusConfig } from "@/lib/status-config";
+import { ArrowLeftRight, ArrowUpRight, Filter } from "lucide-react";
 
 const statusFilters = [
   { value: "all", label: "All" },
@@ -21,20 +22,6 @@ const activeStatuses = [
   "awaiting_bank_details",
   "transfer_in_progress",
 ];
-
-function statusConfig(status: string) {
-  const map: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-    waiting_for_payment: { label: "Awaiting Payment", color: "text-accent-foreground bg-accent", icon: Clock },
-    payment_under_review: { label: "Reviewing", color: "text-accent-foreground bg-accent", icon: Clock },
-    payment_confirmed: { label: "Confirmed", color: "text-primary bg-primary/10", icon: CheckCircle2 },
-    awaiting_bank_details: { label: "Bank Details Needed", color: "text-accent-foreground bg-accent", icon: Clock },
-    transfer_in_progress: { label: "Transfer In Progress", color: "text-accent-foreground bg-accent", icon: Clock },
-    completed: { label: "Completed", color: "text-primary bg-primary/10", icon: CheckCircle2 },
-    cancelled: { label: "Cancelled", color: "text-muted-foreground bg-accent", icon: XCircle },
-    rejected: { label: "Rejected", color: "text-destructive bg-destructive/10", icon: XCircle },
-  };
-  return map[status] || { label: status, color: "text-muted-foreground bg-accent", icon: Clock };
-}
 
 export default function TransactionsPage() {
   const { profile } = useAuth();
@@ -79,6 +66,7 @@ export default function TransactionsPage() {
           <button
             key={f.value}
             onClick={() => setFilter(f.value)}
+            aria-pressed={filter === f.value}
             className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
               filter === f.value
                 ? "bg-primary text-primary-foreground"
@@ -114,7 +102,7 @@ export default function TransactionsPage() {
         <div className="bg-card rounded-xl border border-border overflow-hidden">
           <div className="divide-y divide-border/50">
             {filtered.map((txn) => {
-              const sc = statusConfig(txn.status);
+              const sc = getStatusConfig(txn.status);
               return (
                 <Link
                   key={txn.id}
