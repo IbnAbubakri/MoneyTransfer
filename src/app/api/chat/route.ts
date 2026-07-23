@@ -90,13 +90,6 @@ async function executeTool(
         return { success: false, error: error.message };
       }
 
-      await supabase.from("transaction_history").insert({
-        transaction_id: txn.id,
-        new_status: "waiting_for_payment",
-        changed_by: userId,
-        notes: "Transaction created via AI chat",
-      });
-
       await supabase.from("audit_logs").insert({
         user_id: userId,
         action: "create_transaction",
@@ -177,14 +170,6 @@ async function executeTool(
         return { success: false, error: error.message };
       }
 
-      await supabase.from("transaction_history").insert({
-        transaction_id: txn.id,
-        old_status: "waiting_for_payment",
-        new_status: "payment_under_review",
-        changed_by: userId,
-        notes: "Payment receipt submitted via AI chat",
-      });
-
       await supabase.from("audit_logs").insert({
         user_id: userId,
         action: "submit_receipt",
@@ -236,14 +221,6 @@ async function executeTool(
       if (error) {
         return { success: false, error: error.message };
       }
-
-      await supabase.from("transaction_history").insert({
-        transaction_id: txn.id,
-        old_status: txn.status,
-        new_status: "awaiting_bank_details",
-        changed_by: userId,
-        notes: "Bank details submitted via AI chat",
-      });
 
       await supabase.from("audit_logs").insert({
         user_id: userId,
