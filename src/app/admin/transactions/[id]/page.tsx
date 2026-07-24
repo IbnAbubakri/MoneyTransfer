@@ -10,7 +10,7 @@ import {
   createNotification,
   createAuditLog,
 } from "@/lib/database";
-import { getStatusConfig } from "@/lib/status-config";
+import { getStatusConfig, isValidTransition } from "@/lib/status-config";
 import { TransactionWithHistory } from "@/lib/types";
 import {
   ArrowLeft,
@@ -82,8 +82,14 @@ export default function AdminTransactionDetailPage() {
 
     await createNotification(
       txn.customer_id,
-      `Transaction ${newStatus.replace(/_/g, " ")}`,
-      `Your transaction ${txn.reference} has been updated to ${newStatus.replace(/_/g, " ")}.`,
+      newStatus === "completed"
+        ? "Transfer completed"
+        : `Transaction ${newStatus.replace(/_/g, " ")}`,
+      newStatus === "completed"
+        ? `Your transfer of ₦${txn.ngn_amount.toLocaleString()} for transaction ${txn.reference} has been completed successfully.`
+        : newStatus === "transfer_in_progress"
+        ? `Your transfer for transaction ${txn.reference} is now being processed. You will receive your NGN payment shortly.`
+        : `Your transaction ${txn.reference} has been updated to ${newStatus.replace(/_/g, " ")}.`,
       "transaction",
       txn.id
     );
@@ -290,9 +296,23 @@ export default function AdminTransactionDetailPage() {
             )}
 
             {txn.status === "awaiting_bank_details" && (
-              <p className="text-sm text-muted-foreground">
-                Customer has provided bank details. Ready to process transfer.
-              </p>
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Customer has provided bank details. Ready to process transfer.
+                </p>
+                <button
+                  onClick={() => {
+                    if (!isValidTransition(txn.status, "transfer_in_progress")) return;
+                    if (!window.confirm("Start processing this transfer?")) return;
+                    handleStatusUpdate("transfer_in_progress", undefined, "Transfer processing started");
+                  }}
+                  disabled={actionLoading}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                >
+                  <Send className="w-4 h-4" />
+                  {actionLoading ? "Processing..." : "Process Transfer"}
+                </button>
+              </div>
             )}
 
             {txn.status === "transfer_in_progress" && (

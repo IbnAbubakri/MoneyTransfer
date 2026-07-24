@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { getStatusConfig, getStatusDescription } from "@/lib/status-config";
+import { createNotification } from "@/lib/database";
 
 const bankOptions = [
   "Access Bank",
@@ -166,6 +167,22 @@ export default function TransactionDetailPage() {
       changed_by: profile.id,
       notes: "Bank details submitted",
     });
+
+    // Notify admin that bank details have been submitted
+    const { data: adminProfile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("role", "admin")
+      .single();
+    if (adminProfile) {
+      await createNotification(
+        adminProfile.id,
+        "Bank details submitted",
+        `Customer ${profile.full_name} has submitted bank details for transaction ${txn.reference}. Please process the transfer.`,
+        "transaction",
+        txn.id
+      );
+    }
 
     const { data } = await supabase
       .from("transactions")
