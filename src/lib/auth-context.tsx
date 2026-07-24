@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useRef, ReactNode } from "react";
-import { User, AuthError } from "@supabase/supabase-js";
+import { User, AuthError, AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { createSupabaseBrowser } from "@/lib/supabase";
 import { Profile } from "@/lib/types";
 
@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     getUser();
 
     const { data: { subscription } } = supabaseRef.current.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (_event: AuthChangeEvent, session: Session | null) => {
         try {
           const currentUser = session?.user ?? null;
           if (!mounted) return;

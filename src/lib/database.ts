@@ -623,9 +623,9 @@ export async function getAdminDashboardStats() {
       .select("id", { count: "exact", head: true }),
   ]);
 
-  const rows = volumeResult.data || [];
-  const totalSar = rows.reduce((sum, t) => sum + (t.sar_amount || 0), 0);
-  const totalNgn = rows.reduce((sum, t) => sum + (t.ngn_amount || 0), 0);
+  const rows: { sar_amount?: number; ngn_amount?: number }[] = volumeResult.data || [];
+  const totalSar = rows.reduce((sum: number, t) => sum + (t.sar_amount || 0), 0);
+  const totalNgn = rows.reduce((sum: number, t) => sum + (t.ngn_amount || 0), 0);
 
   return {
     ...basicStats,
