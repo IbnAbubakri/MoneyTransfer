@@ -10,7 +10,7 @@ import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, loading: authLoading, signIn } = useAuth();
+  const { user, profile, loading: authLoading, signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -23,10 +23,10 @@ export default function LoginPage() {
   }, []);
 
   useEffect(() => {
-    if (!authLoading && user) {
-      router.replace("/dashboard");
+    if (!authLoading && user && profile) {
+      router.replace(profile.role === "admin" ? "/admin" : "/dashboard");
     }
-  }, [user, authLoading, router]);
+  }, [user, profile, authLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,10 +46,9 @@ export default function LoginPage() {
         : authError.message);
       return;
     }
-    router.push("/dashboard");
   };
 
-  if (authLoading || user) {
+  if (authLoading || (user && !profile)) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-muted-foreground text-sm">Loading...</div>
