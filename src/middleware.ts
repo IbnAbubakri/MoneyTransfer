@@ -166,12 +166,11 @@ export async function middleware(request: NextRequest) {
   }
 
   // ── Auth-gated routes ──────────────────────────────────────────
-  const isProtectedRoute =
-    pathname.startsWith("/dashboard") || pathname.startsWith("/admin");
-
+  const isDashboardRoute = pathname.startsWith("/dashboard");
   const isApiRoute = pathname.startsWith("/api/");
 
-  if (isProtectedRoute || isApiRoute) {
+  // Admin routes handle their own auth (shows built-in login form)
+  if (isDashboardRoute || isApiRoute) {
     const supabase = await refreshSession(request, response);
 
     const {
@@ -190,40 +189,36 @@ export async function middleware(request: NextRequest) {
       loginUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(loginUrl);
     }
+  }
 
-    // Admin-only routes: verify role server-side
-    if (pathname.startsWith("/admin")) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
+  // Admin routes: refresh session but don't redirect (layout handles auth UI)
+  if (pathname.startsWith("/admin")) {
+    response = await (async () => {
+      const supabase = await refreshSession(request, response);
+      return response;
+    })();
+  }
 
-      if (profile?.role !== "admin") {
-        if (isApiRoute) {
-          return NextResponse.json(
-            { error: "Forbidden" },
-            { status: 403 }
-          );
-        }
-        return NextResponse.redirect(new URL("/dashboard", request.url));
-      }
+  // API admin routes: verify role server-side
+  if (pathname.startsWith("/api/admin")) {
+    const supabase = await refreshSession(request, response);
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+
+    if (error || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // API routes: also check admin for /api/admin/*
-    if (pathname.startsWith("/api/admin")) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
 
-      if (profile?.role !== "admin") {
-        return NextResponse.json(
-          { error: "Forbidden" },
-          { status: 403 }
-        );
-      }
+    if (profile?.role !== "admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
   }
 
