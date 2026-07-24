@@ -276,8 +276,9 @@ export async function middleware(request: NextRequest) {
   // ── Auth-gated routes ──────────────────────────────────────────
   const isDashboardRoute = pathname.startsWith("/dashboard");
   const isApiRoute = pathname.startsWith("/api/");
+  const isPublicApiRoute = pathname === "/api/auth/check-lockout" || pathname === "/api/audit/login";
 
-  if (isDashboardRoute || isApiRoute) {
+  if (isDashboardRoute || (isApiRoute && !isPublicApiRoute)) {
     const supabase = await refreshSession(request, response);
 
     const {
