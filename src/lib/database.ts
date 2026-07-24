@@ -143,7 +143,7 @@ export async function getTransactionByReference(
 ): Promise<TransactionWithCustomer | null> {
   const { data, error } = await supabase
     .from("transactions")
-    .select("*, profiles(*)")
+    .select("*, profiles!customer_id(*)")
     .eq("reference", reference)
     .single();
 
@@ -177,7 +177,7 @@ export async function getAllTransactions(limit = 50, page = 0): Promise<Transact
   const to = from + limit - 1;
   const { data, error } = await supabase
     .from("transactions")
-    .select("*, profiles(*)")
+    .select("*, profiles!customer_id(*)")
     .order("created_at", { ascending: false })
     .range(from, to);
 
@@ -205,7 +205,7 @@ export async function getTransactionsByStatus(
   const to = from + limit - 1;
   const { data, error } = await supabase
     .from("transactions")
-    .select("*, profiles(*)")
+    .select("*, profiles!customer_id(*)")
     .eq("status", status)
     .order("created_at", { ascending: false })
     .range(from, to);
@@ -384,7 +384,7 @@ export async function getAuditLogs(): Promise<
 > {
   const { data, error } = await supabase
     .from("audit_logs")
-    .select("*, profiles(*)")
+    .select("*, profiles!customer_id(*)")
     .order("created_at", { ascending: false })
     .limit(100);
 
@@ -492,7 +492,7 @@ export async function getTransactionWithHistory(
 ): Promise<TransactionWithHistory | null> {
   const { data, error } = await supabase
     .from("transactions")
-    .select("*, profiles(*), transaction_history(*)")
+    .select("*, profiles!customer_id(*), transaction_history(*)")
     .eq("id", transactionId)
     .single();
 
