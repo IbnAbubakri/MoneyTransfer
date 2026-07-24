@@ -93,7 +93,7 @@ export default function LoginPage() {
         } else if (code.includes("Too Many Requests")) {
           setError("Too many attempts. Please wait.");
         } else {
-          setError(code);
+          setError("Something went wrong. Please try again.");
         }
         return;
       }

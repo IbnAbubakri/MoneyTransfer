@@ -68,7 +68,7 @@ export default function ResetPasswordPage() {
       setLoading(false);
 
       if (authError) {
-        setError(authError.message || "Something went wrong. Please try again.");
+        setError("Something went wrong. Please try again.");
         return;
       }
 
