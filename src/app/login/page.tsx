@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,15 +14,13 @@ const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, profile, loading: authLoading, signIn, signOut } = useAuth();
+  const { user, profile, loading: authLoading, signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [justLoggedIn, setJustLoggedIn] = useState(false);
-  const adminChecked = useRef(false);
 
   const redirectParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('redirect') : null;
   const safeRedirect = redirectParam && ALLOWED_REDIRECTS.includes(redirectParam) ? redirectParam : null;
@@ -32,26 +30,14 @@ export default function LoginPage() {
   }, []);
 
   useEffect(() => {
-    if (authLoading || !user || !profile) return;
-
-    if (justLoggedIn && profile.role === "admin" && !adminChecked.current) {
-      adminChecked.current = true;
-      signOut();
-      setError("Admin accounts must use the admin portal.");
-      setJustLoggedIn(false);
-      setLoading(false);
-      return;
-    }
-
-    if (!justLoggedIn) {
+    if (!authLoading && user && profile) {
       router.replace(safeRedirect || "/dashboard");
     }
-  }, [user, profile, authLoading, router, safeRedirect, justLoggedIn, signOut]);
+  }, [user, profile, authLoading, router, safeRedirect]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    adminChecked.current = false;
 
     const cleanEmail = sanitize(email);
     if (!cleanEmail) { setError("Email is required"); return; }
@@ -60,6 +46,22 @@ export default function LoginPage() {
     if (cleanEmail.length > 254) { setError("Email is too long"); return; }
 
     setLoading(true);
+
+    try {
+      const roleRes = await fetch("/api/auth/check-role", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: cleanEmail }),
+      });
+      const roleData = await roleRes.json();
+      if (roleData.blocked) {
+        setError(roleData.error || "Admin accounts must use the admin portal.");
+        setLoading(false);
+        return;
+      }
+    } catch {
+      // Network error on role check — proceed anyway
+    }
 
     try {
       const lockoutRes = await fetch("/api/auth/check-lockout", {
@@ -112,8 +114,6 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
-
-      setJustLoggedIn(true);
 
       fetch("/api/auth/check-lockout", {
         method: "POST",
