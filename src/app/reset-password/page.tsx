@@ -47,6 +47,10 @@ export default function ResetPasswordPage() {
 
     if (!cleanNew) { setError("New password is required"); return; }
     if (cleanNew.length < 8) { setError("Password must be at least 8 characters"); return; }
+    if (cleanNew.length > 128) { setError("Password must be 128 characters or fewer"); return; }
+    if (!/[A-Z]/.test(cleanNew)) { setError("Password must contain at least 1 uppercase letter"); return; }
+    if (!/[a-z]/.test(cleanNew)) { setError("Password must contain at least 1 lowercase letter"); return; }
+    if (!/[0-9]/.test(cleanNew)) { setError("Password must contain at least 1 number"); return; }
     if (cleanNew !== cleanConfirm) { setError("Passwords do not match"); return; }
 
     setLoading(true);
@@ -130,6 +134,8 @@ export default function ResetPasswordPage() {
                   value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="At least 8 characters" required minLength={8} autoComplete="new-password"
                   className="pr-10"
+                  aria-invalid={!!error}
+                  aria-describedby={error ? "reset-error" : undefined}
                 />
                 <button
                   type="button"
@@ -155,6 +161,8 @@ export default function ResetPasswordPage() {
                   value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm your new password" required autoComplete="new-password"
                   className="pr-10"
+                  aria-invalid={!!error}
+                  aria-describedby={error ? "reset-error" : undefined}
                 />
                 <button
                   type="button"
@@ -167,7 +175,7 @@ export default function ResetPasswordPage() {
               </div>
             </div>
             {error && (
-              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20" role="alert">
+              <div id="reset-error" className="p-3 rounded-lg bg-destructive/10 border border-destructive/20" role="alert">
                 <p className="text-sm text-destructive">{error}</p>
               </div>
             )}

@@ -152,6 +152,8 @@ export default function SignupPage() {
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Your full name" required autoComplete="name"
                 disabled={loading}
+                aria-invalid={!!error}
+                aria-describedby={error ? "signup-error" : undefined}
               />
             </div>
             <div>
@@ -161,6 +163,8 @@ export default function SignupPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com" required autoComplete="email"
                 disabled={loading}
+                aria-invalid={!!error}
+                aria-describedby={error ? "signup-error" : undefined}
               />
             </div>
             <div>
@@ -172,6 +176,8 @@ export default function SignupPage() {
                   value={password} onChange={(e) => setPassword(e.target.value)}
                   placeholder="At least 8 characters" required minLength={8} autoComplete="new-password"
                   className="pr-10" disabled={loading}
+                  aria-invalid={!!error}
+                  aria-describedby={error ? "signup-error" : undefined}
                 />
                 <button
                   type="button"
@@ -197,7 +203,7 @@ export default function SignupPage() {
               )}
             </div>
             {error && (
-              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20" role="alert">
+              <div id="signup-error" className="p-3 rounded-lg bg-destructive/10 border border-destructive/20" role="alert">
                 <p className="text-sm text-destructive">{error}</p>
               </div>
             )}

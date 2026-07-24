@@ -103,10 +103,12 @@ export default function ForgotPasswordPage() {
                 id="forgot-email"
                 type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com" required autoComplete="email"
+                aria-invalid={!!error}
+                aria-describedby={error ? "forgot-error" : undefined}
               />
             </div>
             {error && (
-              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20" role="alert">
+              <div id="forgot-error" className="p-3 rounded-lg bg-destructive/10 border border-destructive/20" role="alert">
                 <p className="text-sm text-destructive">{error}</p>
               </div>
             )}

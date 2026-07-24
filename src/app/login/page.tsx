@@ -47,6 +47,22 @@ export default function LoginPage() {
 
     setLoading(true);
 
+    try {
+      const lockoutRes = await fetch("/api/auth/check-lockout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: cleanEmail, action: "check" }),
+      });
+      if (lockoutRes.status === 429) {
+        const lockoutData = await lockoutRes.json();
+        setError(lockoutData.error || "Account temporarily locked. Please try again later.");
+        setLoading(false);
+        return;
+      }
+    } catch {
+      // Network error on lockout check — proceed anyway
+    }
+
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
 
@@ -56,6 +72,18 @@ export default function LoginPage() {
 
       if (authError) {
         await delay(200 + Math.random() * 300);
+
+        fetch("/api/auth/check-lockout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: cleanEmail, action: "failure" }),
+        }).catch(() => {});
+
+        fetch("/api/audit/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: cleanEmail, success: false, userAgent: navigator.userAgent }),
+        }).catch(() => {});
 
         const code = authError.message;
         if (code === "Invalid login credentials") {
@@ -69,6 +97,18 @@ export default function LoginPage() {
         }
         return;
       }
+
+      fetch("/api/auth/check-lockout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: cleanEmail, action: "success" }),
+      }).catch(() => {});
+
+      fetch("/api/audit/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: cleanEmail, success: true, userAgent: navigator.userAgent }),
+      }).catch(() => {});
     } catch (err) {
       clearTimeout(timeout);
       if (err instanceof DOMException && err.name === 'AbortError') {
@@ -115,6 +155,8 @@ export default function LoginPage() {
                 id="login-email"
                 type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com" required autoComplete="email"
+                aria-invalid={!!error}
+                aria-describedby={error ? "login-error" : undefined}
               />
             </div>
             <div>
@@ -126,6 +168,8 @@ export default function LoginPage() {
                   value={password} onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password" required autoComplete="current-password"
                   className="pr-10"
+                  aria-invalid={!!error}
+                  aria-describedby={error ? "login-error" : undefined}
                 />
                 <button
                   type="button"
@@ -138,7 +182,7 @@ export default function LoginPage() {
               </div>
             </div>
             {error && (
-              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20" role="alert">
+              <div id="login-error" className="p-3 rounded-lg bg-destructive/10 border border-destructive/20" role="alert">
                 <p className="text-sm text-destructive">{error}</p>
               </div>
             )}
