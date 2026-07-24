@@ -6,6 +6,9 @@ import { useAuth } from "@/lib/auth-context";
 import { AdminSidebar } from "@/components/admin/sidebar";
 import { Menu, Shield, Eye, EyeOff } from "lucide-react";
 
+const sanitize = (val: string) => val.replace(/<[^>]*>/g, '').trim();
+const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
+
 function AdminLoginForm() {
   const { signIn } = useAuth();
   const router = useRouter();
@@ -19,21 +22,89 @@ function AdminLoginForm() {
     e.preventDefault();
     setError("");
 
-    if (!email.trim()) { setError("Email is required"); return; }
+    const cleanEmail = sanitize(email);
+    if (!cleanEmail) { setError("Email is required"); return; }
     if (!password) { setError("Password is required"); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) { setError("Please enter a valid email address"); return; }
+    if (cleanEmail.length > 254) { setError("Email is too long"); return; }
 
     setLoading(true);
-    const { error: authError } = await signIn(email, password);
-    setLoading(false);
 
-    if (authError) {
-      setError(authError.message === "Invalid login credentials"
-        ? "Invalid email or password"
-        : authError.message);
+    try {
+      const lockoutRes = await fetch("/api/auth/check-lockout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: cleanEmail, action: "check" }),
+      });
+      if (lockoutRes.status === 429) {
+        const lockoutData = await lockoutRes.json();
+        setError(lockoutData.error || "Account temporarily locked. Please try again later.");
+        setLoading(false);
+        return;
+      }
+    } catch {
+      // Network error on lockout check — proceed anyway
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
+    try {
+      const { error: authError } = await signIn(cleanEmail, password);
+      clearTimeout(timeout);
+
+      if (authError) {
+        await delay(200 + Math.random() * 300);
+
+        fetch("/api/auth/check-lockout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: cleanEmail, action: "failure" }),
+        }).catch(() => {});
+
+        fetch("/api/audit/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: cleanEmail, success: false, userAgent: navigator.userAgent }),
+        }).catch(() => {});
+
+        const code = authError.message;
+        if (code === "Invalid login credentials") {
+          setError("Invalid email or password");
+        } else if (code === "Email not confirmed") {
+          setError("Please verify your email first");
+        } else if (code.includes("Too Many Requests")) {
+          setError("Too many attempts. Please wait.");
+        } else {
+          setError("Something went wrong. Please try again.");
+        }
+        return;
+      }
+
+      fetch("/api/auth/check-lockout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: cleanEmail, action: "success" }),
+      }).catch(() => {});
+
+      fetch("/api/audit/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: cleanEmail, success: true, userAgent: navigator.userAgent }),
+      }).catch(() => {});
+    } catch (err) {
+      clearTimeout(timeout);
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        setError("Request timed out. Please try again.");
+        setLoading(false);
+        return;
+      }
+      setError("Network error. Please try again.");
+      setLoading(false);
       return;
     }
 
-    // Page will re-render with user set, layout checks role
+    setLoading(false);
   };
 
   return (
@@ -59,6 +130,8 @@ function AdminLoginForm() {
                 placeholder="admin@moneytransfer.com"
                 required
                 autoComplete="email"
+                aria-invalid={!!error}
+                aria-describedby={error ? "admin-error" : undefined}
                 className="w-full h-11 px-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-sm"
               />
             </div>
@@ -73,6 +146,8 @@ function AdminLoginForm() {
                   placeholder="Enter your password"
                   required
                   autoComplete="current-password"
+                  aria-invalid={!!error}
+                  aria-describedby={error ? "admin-error" : undefined}
                   className="w-full h-11 px-3 pr-10 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-sm"
                 />
                 <button
@@ -86,7 +161,7 @@ function AdminLoginForm() {
               </div>
             </div>
             {error && (
-              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20" role="alert">
+              <div id="admin-error" className="p-3 rounded-lg bg-destructive/10 border border-destructive/20" role="alert">
                 <p className="text-sm text-destructive">{error}</p>
               </div>
             )}
@@ -94,6 +169,7 @@ function AdminLoginForm() {
               type="submit"
               disabled={loading}
               className="w-full h-11 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
+              aria-label="Sign in to admin portal"
             >
               {loading ? "Signing in..." : "Sign in to Admin"}
             </button>

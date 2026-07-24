@@ -14,7 +14,7 @@ const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, profile, loading: authLoading, signIn } = useAuth();
+  const { user, profile, loading: authLoading, signIn, signOut } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -96,6 +96,27 @@ export default function LoginPage() {
           setError("Something went wrong. Please try again.");
         }
         return;
+      }
+
+      // Check if admin — admin must use /admin login
+      const { createClient } = await import("@supabase/supabase-js");
+      const checkClient = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      );
+      const { data: { session } } = await checkClient.auth.getSession();
+      if (session?.user) {
+        const { data: prof } = await checkClient
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single();
+        if (prof?.role === "admin") {
+          await signOut();
+          setError("Admin accounts must use the admin portal.");
+          setLoading(false);
+          return;
+        }
       }
 
       fetch("/api/auth/check-lockout", {
