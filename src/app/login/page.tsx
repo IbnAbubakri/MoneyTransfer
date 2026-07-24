@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,8 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [justLoggedIn, setJustLoggedIn] = useState(false);
+  const adminChecked = useRef(false);
 
   const redirectParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('redirect') : null;
   const safeRedirect = redirectParam && ALLOWED_REDIRECTS.includes(redirectParam) ? redirectParam : null;
@@ -30,14 +32,26 @@ export default function LoginPage() {
   }, []);
 
   useEffect(() => {
-    if (!authLoading && user && profile) {
+    if (authLoading || !user || !profile) return;
+
+    if (justLoggedIn && profile.role === "admin" && !adminChecked.current) {
+      adminChecked.current = true;
+      signOut();
+      setError("Admin accounts must use the admin portal.");
+      setJustLoggedIn(false);
+      setLoading(false);
+      return;
+    }
+
+    if (!justLoggedIn) {
       router.replace(safeRedirect || "/dashboard");
     }
-  }, [user, profile, authLoading, router, safeRedirect]);
+  }, [user, profile, authLoading, router, safeRedirect, justLoggedIn, signOut]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    adminChecked.current = false;
 
     const cleanEmail = sanitize(email);
     if (!cleanEmail) { setError("Email is required"); return; }
@@ -95,29 +109,11 @@ export default function LoginPage() {
         } else {
           setError("Something went wrong. Please try again.");
         }
+        setLoading(false);
         return;
       }
 
-      // Check if admin — admin must use /admin login
-      const { createClient } = await import("@supabase/supabase-js");
-      const checkClient = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
-      const { data: { session } } = await checkClient.auth.getSession();
-      if (session?.user) {
-        const { data: prof } = await checkClient
-          .from("profiles")
-          .select("role")
-          .eq("id", session.user.id)
-          .single();
-        if (prof?.role === "admin") {
-          await signOut();
-          setError("Admin accounts must use the admin portal.");
-          setLoading(false);
-          return;
-        }
-      }
+      setJustLoggedIn(true);
 
       fetch("/api/auth/check-lockout", {
         method: "POST",
@@ -141,8 +137,6 @@ export default function LoginPage() {
       setLoading(false);
       return;
     }
-
-    setLoading(false);
   };
 
   if (authLoading || (user && !profile)) {
