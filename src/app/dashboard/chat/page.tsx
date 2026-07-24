@@ -78,11 +78,7 @@ export default function ChatPage() {
       return null;
     }
 
-    const { data: urlData } = supabase.storage
-      .from("payment-receipts")
-      .getPublicUrl(fileName);
-
-    return urlData.publicUrl;
+    return `/api/receipt?path=${encodeURIComponent(fileName)}`;
   };
 
   const handleSend = async (text?: string) => {

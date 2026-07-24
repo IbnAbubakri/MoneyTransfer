@@ -112,14 +112,10 @@ export default function TransactionDetailPage() {
       return;
     }
 
-    const { data: urlData } = supabase.storage
-      .from("payment-receipts")
-      .getPublicUrl(filePath);
-
     await supabase
       .from("transactions")
       .update({
-        payment_receipt_url: urlData.publicUrl,
+        payment_receipt_url: filePath,
         status: "payment_under_review",
       })
       .eq("id", txn.id)
@@ -355,20 +351,27 @@ export default function TransactionDetailPage() {
               </p>
             </div>
           </div>
-          {txn.payment_receipt_url && (
-            <div className="mt-4 pt-4 border-t border-border">
-              <p className="text-sm text-muted-foreground mb-2">Uploaded receipt:</p>
-              <a
-                href={txn.payment_receipt_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
-              >
-                <FileImage className="w-4 h-4" />
-                View receipt
-              </a>
-            </div>
-          )}
+          {txn.payment_receipt_url && (() => {
+            const bucketMarker = "payment-receipts/"
+            const markerIndex = txn.payment_receipt_url.indexOf(bucketMarker)
+            const receiptPath = markerIndex !== -1
+              ? txn.payment_receipt_url.substring(markerIndex + bucketMarker.length)
+              : txn.payment_receipt_url
+            return receiptPath ? (
+              <div className="mt-4 pt-4 border-t border-border">
+                <p className="text-sm text-muted-foreground mb-2">Uploaded receipt:</p>
+                <a
+                  href={`/api/receipt?path=${encodeURIComponent(receiptPath)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                >
+                  <FileImage className="w-4 h-4" />
+                  View receipt
+                </a>
+              </div>
+            ) : null
+          })()}
         </div>
       )}
 
