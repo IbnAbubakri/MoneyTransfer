@@ -8,6 +8,23 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth-context";
 import { Eye, EyeOff, CheckCircle2 } from "lucide-react";
 
+const sanitize = (val: string) => val.replace(/<[^>]*>/g, '').trim();
+
+const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (password.length >= 12) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[a-z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+
+  if (score <= 2) return { score, label: "Weak", color: "bg-destructive" };
+  if (score <= 3) return { score, label: "Fair", color: "bg-yellow-500" };
+  if (score <= 4) return { score, label: "Good", color: "bg-primary" };
+  return { score, label: "Strong", color: "bg-emerald-500" };
+};
+
 export default function SignupPage() {
   const router = useRouter();
   const { user, loading: authLoading, signUp } = useAuth();
@@ -19,6 +36,8 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  const strength = getPasswordStrength(password);
 
   useEffect(() => {
     setMounted(true);
@@ -34,25 +53,43 @@ export default function SignupPage() {
     e.preventDefault();
     setError("");
 
-    if (!fullName.trim()) { setError("Full name is required"); return; }
-    if (!email.trim()) { setError("Email is required"); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError("Please enter a valid email address"); return; }
+    const cleanName = sanitize(fullName);
+    const cleanEmail = sanitize(email);
+
+    if (!cleanName) { setError("Full name is required"); return; }
+    if (!cleanEmail) { setError("Email is required"); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) { setError("Please enter a valid email address"); return; }
+    if (cleanEmail.length > 254) { setError("Email is too long"); return; }
     if (!password) { setError("Password is required"); return; }
     if (password.length < 8) { setError("Password must be at least 8 characters"); return; }
+    if (password.length > 128) { setError("Password must be 128 characters or fewer"); return; }
+    if (!/[A-Z]/.test(password)) { setError("Password must contain at least 1 uppercase letter"); return; }
+    if (!/[a-z]/.test(password)) { setError("Password must contain at least 1 lowercase letter"); return; }
+    if (!/[0-9]/.test(password)) { setError("Password must contain at least 1 number"); return; }
 
     setLoading(true);
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
     try {
-      const { error: authError } = await signUp(email, password, fullName);
-      setLoading(false);
+      const { error: authError } = await signUp(cleanEmail, password, cleanName);
+      clearTimeout(timeout);
 
       if (authError) {
         setError("Something went wrong. Please try again.");
+        setLoading(false);
         return;
       }
 
       setSuccess(true);
-    } catch {
+    } catch (err) {
+      clearTimeout(timeout);
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        setError("Request timed out. Please try again.");
+        setLoading(false);
+        return;
+      }
       setLoading(false);
       setError("Something went wrong. Please try again.");
     }
@@ -114,6 +151,7 @@ export default function SignupPage() {
                 id="signup-name" type="text" value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Your full name" required autoComplete="name"
+                disabled={loading}
               />
             </div>
             <div>
@@ -122,6 +160,7 @@ export default function SignupPage() {
                 id="signup-email" type="email" value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com" required autoComplete="email"
+                disabled={loading}
               />
             </div>
             <div>
@@ -132,7 +171,7 @@ export default function SignupPage() {
                   type={showPassword ? "text" : "password"}
                   value={password} onChange={(e) => setPassword(e.target.value)}
                   placeholder="At least 8 characters" required minLength={8} autoComplete="new-password"
-                  className="pr-10"
+                  className="pr-10" disabled={loading}
                 />
                 <button
                   type="button"
@@ -143,6 +182,19 @@ export default function SignupPage() {
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+              {password && (
+                <div className="mt-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${strength.color} transition-all duration-300`}
+                        style={{ width: `${(strength.score / 6) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-muted-foreground">{strength.label}</span>
+                  </div>
+                </div>
+              )}
             </div>
             {error && (
               <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20" role="alert">

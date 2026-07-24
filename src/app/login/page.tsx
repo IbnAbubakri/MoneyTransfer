@@ -8,6 +8,10 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth-context";
 import { Eye, EyeOff } from "lucide-react";
 
+const ALLOWED_REDIRECTS = ["/dashboard", "/admin"];
+const sanitize = (val: string) => val.replace(/<[^>]*>/g, '').trim();
+const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
+
 export default function LoginPage() {
   const router = useRouter();
   const { user, profile, loading: authLoading, signIn } = useAuth();
@@ -18,34 +22,66 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  const redirectParam = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('redirect') : null;
+  const safeRedirect = redirectParam && ALLOWED_REDIRECTS.includes(redirectParam) ? redirectParam : null;
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
     if (!authLoading && user && profile) {
-      router.replace("/dashboard");
+      router.replace(safeRedirect || "/dashboard");
     }
-  }, [user, profile, authLoading, router]);
+  }, [user, profile, authLoading, router, safeRedirect]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!email.trim()) { setError("Email is required"); return; }
+    const cleanEmail = sanitize(email);
+    if (!cleanEmail) { setError("Email is required"); return; }
     if (!password) { setError("Password is required"); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError("Please enter a valid email address"); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) { setError("Please enter a valid email address"); return; }
+    if (cleanEmail.length > 254) { setError("Email is too long"); return; }
 
     setLoading(true);
-    const { error: authError } = await signIn(email, password);
-    setLoading(false);
 
-    if (authError) {
-      setError(authError.message === "Invalid login credentials"
-        ? "Invalid email or password"
-        : authError.message);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
+    try {
+      const { error: authError } = await signIn(cleanEmail, password);
+      clearTimeout(timeout);
+
+      if (authError) {
+        await delay(200 + Math.random() * 300);
+
+        const code = authError.message;
+        if (code === "Invalid login credentials") {
+          setError("Invalid email or password");
+        } else if (code === "Email not confirmed") {
+          setError("Please verify your email first");
+        } else if (code.includes("Too Many Requests")) {
+          setError("Too many attempts. Please wait.");
+        } else {
+          setError(code);
+        }
+        return;
+      }
+    } catch (err) {
+      clearTimeout(timeout);
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        setError("Request timed out. Please try again.");
+        setLoading(false);
+        return;
+      }
+      setError("Network error. Please try again.");
+      setLoading(false);
       return;
     }
+
+    setLoading(false);
   };
 
   if (authLoading || (user && !profile)) {
@@ -110,7 +146,10 @@ export default function LoginPage() {
               {loading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
-          <p className="text-sm text-center text-muted-foreground mt-6">
+          <p className="text-sm text-center text-muted-foreground mt-4">
+            <Link href="/forgot-password" className="text-primary font-medium hover:underline">Forgot password?</Link>
+          </p>
+          <p className="text-sm text-center text-muted-foreground mt-4">
             Don&apos;t have an account?{" "}
             <Link href="/signup" className="text-primary font-medium hover:underline">Create one</Link>
           </p>

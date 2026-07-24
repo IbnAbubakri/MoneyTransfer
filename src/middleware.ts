@@ -18,14 +18,12 @@ async function checkRateLimit(
   const now = Date.now();
   const windowStart = now - windowMs;
 
-  // Clean up expired entries for this key (older than window)
   await supabaseAdmin
     .from("rate_limits")
     .delete()
     .eq("key", key)
     .lt("window_start", windowStart);
 
-  // Get current count in the active window
   const { data: existing } = await supabaseAdmin
     .from("rate_limits")
     .select("count, window_start")
@@ -34,7 +32,6 @@ async function checkRateLimit(
     .single();
 
   if (!existing) {
-    // First request in this window — insert
     await supabaseAdmin.from("rate_limits").insert({
       key,
       count: 1,
@@ -48,7 +45,6 @@ async function checkRateLimit(
     return { allowed: false, retryAfterMs: Math.max(retryAfterMs, 0) };
   }
 
-  // Increment count
   await supabaseAdmin
     .from("rate_limits")
     .update({ count: existing.count + 1 })
@@ -56,6 +52,102 @@ async function checkRateLimit(
     .eq("window_start", existing.window_start);
 
   return { allowed: true, retryAfterMs: 0 };
+}
+
+// ── Account lockout with exponential backoff ───────────────────────────
+export async function checkLoginLockout(email: string, ip: string): Promise<{ allowed: boolean; retryAfterMs: number }> {
+  const now = Date.now();
+  const lockoutKey = `lockout:${email}`;
+
+  const { data: lockout } = await supabaseAdmin
+    .from("rate_limits")
+    .select("count, window_start")
+    .eq("key", lockoutKey)
+    .gt("window_start", now)
+    .single();
+
+  if (lockout && lockout.count >= 5) {
+    const extraAttempts = lockout.count - 5;
+    const lockoutMs = 15 * 60_000 * Math.pow(2, extraAttempts);
+    const retryAfterMs = lockout.window_start + lockoutMs - now;
+    if (retryAfterMs > 0) {
+      return { allowed: false, retryAfterMs };
+    }
+  }
+
+  return { allowed: true, retryAfterMs: 0 };
+}
+
+export async function recordFailedLoginAttempt(email: string, ip: string): Promise<void> {
+  const lockoutKey = `lockout:${email}`;
+  const now = Date.now();
+  const windowMs = 30 * 60_000;
+
+  const { data: existing } = await supabaseAdmin
+    .from("rate_limits")
+    .select("count, window_start")
+    .eq("key", lockoutKey)
+    .gt("window_start", now - windowMs)
+    .single();
+
+  if (!existing) {
+    await supabaseAdmin.from("rate_limits").insert({
+      key: lockoutKey,
+      count: 1,
+      window_start: now,
+    });
+  } else {
+    await supabaseAdmin
+      .from("rate_limits")
+      .update({ count: existing.count + 1 })
+      .eq("key", lockoutKey)
+      .eq("window_start", existing.window_start);
+  }
+}
+
+export async function clearFailedLoginAttempts(email: string): Promise<void> {
+  await supabaseAdmin
+    .from("rate_limits")
+    .delete()
+    .eq("key", `lockout:${email}`);
+}
+
+// ── Multi-IP attack detection ──────────────────────────────────────────
+export async function checkMultiIpAttack(email: string, currentIp: string): Promise<boolean> {
+  const { data: attempts } = await supabaseAdmin
+    .from("rate_limits")
+    .select("key")
+    .like("key", `failed_login:${email}:%`);
+
+  if (!attempts) return false;
+
+  const uniqueIps = new Set(attempts.map(a => a.key.split(":").pop()));
+  uniqueIps.add(currentIp);
+  return uniqueIps.size >= 3;
+}
+
+export async function recordFailedLoginByIp(email: string, ip: string): Promise<void> {
+  const key = `failed_login:${email}:${ip}`;
+  const now = Date.now();
+
+  const { data: existing } = await supabaseAdmin
+    .from("rate_limits")
+    .select("count, window_start")
+    .eq("key", key)
+    .gt("window_start", now - 3_600_000)
+    .single();
+
+  if (!existing) {
+    await supabaseAdmin.from("rate_limits").insert({
+      key, count: 1, window_start: now,
+    });
+  } else {
+    await supabaseAdmin
+      .from("rate_limits")
+      .update({ count: existing.count + 1 })
+      .eq("key", key)
+      .eq("window_start", existing.window_start);
+  }
 }
 
 // ── Security headers ────────────────────────────────────────────────
@@ -104,10 +196,8 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   let response = NextResponse.next({ request: { headers: request.headers } });
 
-  // Security headers on every response
   response = addSecurityHeaders(response);
 
-  // ── Rate limiting (persistent via Supabase) ─────────────────────
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
 
@@ -147,6 +237,24 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Forgot-password / reset-password: 3 requests per 15 minutes per IP
+  if (pathname === "/forgot-password" || pathname === "/api/auth/reset-password") {
+    const { allowed, retryAfterMs } = await checkRateLimit(`forgot:${ip}`, 3, 900_000);
+    if (!allowed) {
+      return addSecurityHeaders(
+        NextResponse.json(
+          { error: "Too many reset attempts. Please try again later." },
+          {
+            status: 429,
+            headers: {
+              "Retry-After": String(Math.ceil(retryAfterMs / 1000)),
+            },
+          }
+        )
+      );
+    }
+  }
+
   // Chat API: 30 requests per 5 minutes per IP
   if (pathname === "/api/chat") {
     const { allowed, retryAfterMs } = await checkRateLimit(`chat:${ip}`, 30, 300_000);
@@ -169,7 +277,6 @@ export async function middleware(request: NextRequest) {
   const isDashboardRoute = pathname.startsWith("/dashboard");
   const isApiRoute = pathname.startsWith("/api/");
 
-  // Admin routes handle their own auth (shows built-in login form)
   if (isDashboardRoute || isApiRoute) {
     const supabase = await refreshSession(request, response);
 
@@ -222,7 +329,6 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Persist refreshed cookies
   return response;
 }
 
@@ -233,7 +339,10 @@ export const config = {
     "/api/chat",
     "/api/auth/:path*",
     "/api/admin/:path*",
+    "/api/audit/:path*",
     "/login",
     "/signup",
+    "/forgot-password",
+    "/reset-password",
   ],
 };

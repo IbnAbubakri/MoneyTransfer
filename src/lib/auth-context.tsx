@@ -124,6 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       console.error("Sign out error:", err);
     }
+    setUser(null);
     setProfile(null);
   };
 
